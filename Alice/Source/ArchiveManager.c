@@ -41,7 +41,7 @@ char* OpenFileNWindows(char* ArchivePath, Usize Capacity) {
     return totalBuffer;
 }
 
-Alice_CodeObject* OpenMermaidFile(char* ArchivePath) 
+Alice_CodeObject* OpenAliceFile(char* ArchivePath) 
 {
     Alice_CodeObject* NewCodeObject = malloc(sizeof(Alice_CodeObject));
     char* Code = OpenFileNWindows(ArchivePath, 1024);

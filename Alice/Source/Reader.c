@@ -77,7 +77,7 @@ void ReadPath(CompAttributes* CompilationAttributes, Alice_BigGirl* BigGirl) {
                 l++;
             }
             char* Path = Substring(CompilationAttributes -> Paths -> Chars, x, x + l);
-            Alice_CodeObject* NewCode = OpenMermaidFile(Path);
+            Alice_CodeObject* NewCode = OpenAliceFile(Path);
             GirlAppend(BigGirl, NewCode);
         }
         x++;

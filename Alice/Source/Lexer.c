@@ -4,65 +4,12 @@
 #include "Headers/Lexer.h"
 #include "External/Libraries.h"
 
-char ActualChar(LexerState* MermaidState) {
-    return MermaidState -> Code -> Chars[MermaidState -> Pointer];
+char ActualChar(LexerState* AliceState) {
+    return AliceState -> Code -> Chars[AliceState -> Pointer];
 }
 
-char Peek(LexerState* MermaidState, int Offset) {
-    return MermaidState -> Code -> Chars[MermaidState -> Pointer + Offset];
-}
-
-void Next(LexerState* MermaidState, int Offset) {
-    MermaidState -> Pointer += Offset;
-}
-
-void Skip(LexerState* MermaidState) {
-    while (1) 
-    {
-        if (ActualChar(MermaidState) == '/' && Peek(MermaidState, 1) == '/') 
-        {
-            while (ActualChar(MermaidState) != '\n' && !IsInvalid(ActualChar(MermaidState))) {
-                if (ActualChar(MermaidState) == '\n') 
-                {
-                    MermaidState -> Line++;
-                }
-                Next(MermaidState, 1);
-            }
-        }
-
-        if ((ActualChar(MermaidState) == '/' && Peek(MermaidState, 1) == '*') && !IsInvalid(ActualChar(MermaidState))) 
-        {
-            while (!(ActualChar(MermaidState) == '*' && Peek(MermaidState, 1) == '/')) {
-                if (ActualChar(MermaidState) == '\n') 
-                {
-                    MermaidState -> Line++;
-                }
-                Next(MermaidState, 1);
-            }
-            Next(MermaidState, 2);
-        }
-
-        if ((ActualChar(MermaidState) == ' ' || ActualChar(MermaidState) == '\n') && !IsInvalid(ActualChar(MermaidState))) 
-        {
-            if (ActualChar(MermaidState) == '\n') 
-            {
-                MermaidState -> Line++;
-            }
-            Next(MermaidState, 1);
-        } 
-        else 
-        {
-            break;
-        } 
-    }
-}
-
-void Set(LexerState* MermaidState, Usize SetValue) 
-{
-    if (SetValue >= 0) 
-    {
-        MermaidState -> Pointer = SetValue;
-    }
+char Peek(LexerState* AliceState, int Offset) {
+    return AliceState -> Code -> Chars[AliceState -> Pointer + Offset];
 }
 
 Alice_Token* CreateToken(
@@ -78,13 +25,104 @@ Alice_Token* CreateToken(
     return Buffer;
 }
 
-Alice_Token* ReadSpecial(LexerState* MermaidState) 
+void Next(LexerState* AliceState, int Offset) {
+    AliceState -> Pointer += Offset;
+}
+
+Usize MeasureIndentation(LexerState* AliceState) 
+{
+    Usize TabCount = 0;
+    Usize LexerPointer = AliceState -> Pointer + 1;
+    while ((AliceState -> Code -> Chars[LexerPointer] == '\t') || (AliceState -> Code -> Chars[LexerPointer] == ' ')) 
+    {
+        TabCount++;
+        LexerPointer++;
+    }
+    return TabCount;
+}
+
+Alice_Token* HandleIndentation(LexerState* AliceState) {
+    AliceState -> Line++;
+    Usize Start = AliceState -> Pointer;
+    Usize ActualIndentation = MeasureIndentation(AliceState);
+    if (ActualIndentation > AliceState -> Indentation) {
+        AliceState -> Indentation = ActualIndentation;
+        return CreateToken(
+            Tk_Indent,
+            Start,
+            1);
+    }
+    else if (ActualIndentation < AliceState -> Indentation) {
+        AliceState -> Indentation = ActualIndentation;
+        return CreateToken(
+            Tk_Dedent,
+            Start,
+            1);
+    }
+}
+
+void Skip(LexerState* AliceState) {
+    while (1) 
+    {
+        if (ActualChar(AliceState) == '/' && Peek(AliceState, 1) == '/') 
+        {
+            while (ActualChar(AliceState) != '\n' && !IsInvalid(ActualChar(AliceState))) {
+                if (ActualChar(AliceState) == '\n') 
+                {
+                    AliceState -> Line++;
+                }
+                Next(AliceState, 1);
+            }
+        }
+
+        if ((ActualChar(AliceState) == '/' && Peek(AliceState, 1) == '*') && !IsInvalid(ActualChar(AliceState))) 
+        {
+            while (!(ActualChar(AliceState) == '*' && Peek(AliceState, 1) == '/')) {
+                if (ActualChar(AliceState) == '\n') 
+                {
+                    AliceState -> Line++;
+                }
+                Next(AliceState, 1);
+            }
+            Next(AliceState, 2);
+        }
+
+        if ((ActualChar(AliceState) == ' ') && !IsInvalid(ActualChar(AliceState))) 
+        {
+            Next(AliceState, 1);
+        } 
+        else 
+        {
+            break;
+        } 
+    }
+}
+
+void Set(LexerState* AliceState, Usize SetValue) 
+{
+    if (SetValue >= 0) 
+    {
+        AliceState -> Pointer = SetValue;
+    }
+}
+
+Alice_Token* ReadSpecial(LexerState* AliceState) 
 {
     Alice_TokenType Type = Tk_Illegal;
-    Usize Start = MermaidState -> Pointer;
+    Usize Start = AliceState -> Pointer;
     Usize Length = 1;
 
-    switch (ActualChar(MermaidState)) {
+    switch (ActualChar(AliceState)) {
+        case '\n':
+            if (MeasureIndentation(AliceState) > AliceState -> Indentation 
+            || MeasureIndentation(AliceState) < AliceState -> Indentation) 
+            {
+                Type = HandleIndentation(AliceState) -> Type;
+            }
+            else {
+                return NULL;
+            }
+            break;
         case '@':
             Type = Tk_Adress;
             break;
@@ -124,24 +162,45 @@ Alice_Token* ReadSpecial(LexerState* MermaidState)
             break;
             
         case '<':
-            switch (Peek(MermaidState, 1))
+            switch (Peek(AliceState, 1))
             {
                 case '-':
                     Type = Tk_LeftSetter;
                     Length = 2;
                     break;
-
+                case '=':
+                    Type = Tk_LessEqual;
+                    Length = 2;
+                    break;
                 default:
                     Type = Tk_LeftArrow;
                     break;
             }
             break;
         case '>':
-            Type = Tk_RightArrow;
+            switch (Peek(AliceState, 1))
+            {
+                case '=':
+                    Type = Tk_GreaterEqual;
+                    Length = 2;
+                    break;
+                default:
+                    Type = Tk_RightArrow;
+                    break;
+            }
             break;
 
         case '!':
-            Type = Tk_Bang;
+            switch (Peek(AliceState, 1))
+            {
+                case '=':
+                    Type = Tk_NotEqual;
+                    Length = 2;
+                    break;
+                default:
+                    Type = Tk_Bang;
+                    break;
+            }
             break;
 
         case '^':
@@ -149,7 +208,7 @@ Alice_Token* ReadSpecial(LexerState* MermaidState)
             break;
 
         case '+':
-            switch (Peek(MermaidState, 1))
+            switch (Peek(AliceState, 1))
             {
                 case '+':
                     Type = Tk_PlusPLus;
@@ -162,7 +221,7 @@ Alice_Token* ReadSpecial(LexerState* MermaidState)
             }
             break;
         case '-':
-            switch (Peek(MermaidState, 1))
+            switch (Peek(AliceState, 1))
             {
                 case '-':
                     Type = Tk_MinusMinus;
@@ -180,7 +239,7 @@ Alice_Token* ReadSpecial(LexerState* MermaidState)
             }
             break;
         case ':':
-            switch (Peek(MermaidState, 1))
+            switch (Peek(AliceState, 1))
             {
                 case ':':
                     Type = Tk_DoubleColon;
@@ -194,8 +253,13 @@ Alice_Token* ReadSpecial(LexerState* MermaidState)
             break;
 
         case '=':
-            switch (Peek(MermaidState, 1))
+            switch (Peek(AliceState, 1))
             {
+                case '=':
+                    Type = Tk_EqualEqual;
+                    Length = 2;
+                    break;
+
                 default:
                     Type = Tk_Equal;
                     break;
@@ -203,7 +267,7 @@ Alice_Token* ReadSpecial(LexerState* MermaidState)
             break;
 
         case '/':
-            switch (Peek(MermaidState, 1))
+            switch (Peek(AliceState, 1))
             {
                 case '/':
                     Type = Tk_Div;
@@ -217,7 +281,7 @@ Alice_Token* ReadSpecial(LexerState* MermaidState)
             break;
 
         case '\\':
-            switch (Peek(MermaidState, 1))
+            switch (Peek(AliceState, 1))
             {
                 case '\\':
                     Type = Tk_DoubleBackslash;
@@ -230,7 +294,7 @@ Alice_Token* ReadSpecial(LexerState* MermaidState)
             }
             break;
         case '&':
-            switch (Peek(MermaidState, 1))
+            switch (Peek(AliceState, 1))
             {
                 case '&':
                     Type = Tk_DoubleCommercial;
@@ -243,13 +307,8 @@ Alice_Token* ReadSpecial(LexerState* MermaidState)
             }
             break;
         case '|':
-            switch (Peek(MermaidState, 1))
+            switch (Peek(AliceState, 1))
             {
-                case '|':
-                    Type = Tk_DoublePipe;
-                    Length = 2;
-                    break;
-
                 default:
                     Type = Tk_Pipe;
                     break;
@@ -286,60 +345,60 @@ Alice_TokenType Indentify(const char* Word)
     }
 }
 
-Alice_Token* ReadIndentifier(LexerState* MermaidState) 
+Alice_Token* ReadIndentifier(LexerState* AliceState) 
 {
     int Length = 0;
-    Usize Start = MermaidState -> Pointer;
-    while (IsIndentifierChar(MermaidState -> Code -> Chars[Start + Length]) && !IsInvalid(ActualChar(MermaidState))) 
+    Usize Start = AliceState -> Pointer;
+    while (IsIndentifierChar(AliceState -> Code -> Chars[Start + Length]) && !IsInvalid(ActualChar(AliceState))) 
     {
         Length++;
     }
-    char* Word =  Substring(MermaidState -> Code -> Chars, Start, (Start + Length));
+    char* Word =  Substring(AliceState -> Code -> Chars, Start, (Start + Length));
     Alice_TokenType Type = Indentify(Word);
     return CreateToken(Type, Start, Length);
 }
 
-Alice_Token* ReadString(LexerState* MermaidState)
+Alice_Token* ReadString(LexerState* AliceState)
 {
-    Next(MermaidState, 1);
+    Next(AliceState, 1);
     int Length = 0;
-    Usize Start = MermaidState -> Pointer;
-    while ((MermaidState -> Code -> Chars[Start + Length]) != STRING_MARKER && !IsInvalid(ActualChar(MermaidState))) 
+    Usize Start = AliceState -> Pointer;
+    while ((AliceState -> Code -> Chars[Start + Length]) != STRING_MARKER && !IsInvalid(ActualChar(AliceState))) 
     {
         Length++;
     }
-    char* Word =  Substring(MermaidState -> Code -> Chars, Start, (Start + Length));
+    char* Word =  Substring(AliceState -> Code -> Chars, Start, (Start + Length));
 
     // Temporary
     printf("%s ", Word);
-    Next(MermaidState, 1);
+    Next(AliceState, 1);
     return CreateToken(Tk_String, Start, Length);
 }
 
-Alice_Token* ReadNumerical(LexerState* MermaidState) 
+Alice_Token* ReadNumerical(LexerState* AliceState) 
 {
     int Length = 0;
-    Usize Start = MermaidState -> Pointer;
-    while (IsValidNumerical(MermaidState -> Code -> Chars[Start + Length]) && !IsInvalid(ActualChar(MermaidState))) 
+    Usize Start = AliceState -> Pointer;
+    while (IsValidNumerical(AliceState -> Code -> Chars[Start + Length]) && !IsInvalid(ActualChar(AliceState))) 
     {
         Length++;
     }
     return CreateToken(Tk_Integer, Start, Length);
 }
 
-Alice_Token* ReadArchiveMarker(LexerState* MermaidState)
+Alice_Token* ReadArchiveMarker(LexerState* AliceState)
 {
-    Next(MermaidState, 1);
+    Next(AliceState, 1);
     int Length = 0;
-    Usize Start = MermaidState -> Pointer;
-    while ((MermaidState -> Code -> Chars[Start + Length]) != ARCHIVE_MARKER && !IsInvalid(ActualChar(MermaidState))) 
+    Usize Start = AliceState -> Pointer;
+    while ((AliceState -> Code -> Chars[Start + Length]) != ARCHIVE_MARKER && !IsInvalid(ActualChar(AliceState))) 
     {
         Length++;
     }
-    char* Word =  Substring(MermaidState -> Code -> Chars, Start, (Start + Length));
-    Next(MermaidState, 1);
+    char* Word =  Substring(AliceState -> Code -> Chars, Start, (Start + Length));
+    Next(AliceState, 1);
     return CreateToken(Tk_ArchiveMarker, Start, Length);
-    MermaidState -> Line = 1;
+    AliceState -> Line = 1;
 }
 
 void Tokenize(Alice_BigGirl* Girl, Vector* Tokens) 
@@ -348,14 +407,13 @@ void Tokenize(Alice_BigGirl* Girl, Vector* Tokens)
     LocalState.Char = '_';
     LocalState.Pointer = 0;
     LocalState.Line = 1;
+    LocalState.Indentation = 0;
 
     LocalState.Code = Girl -> SourceCode;
     for (int x = 0; ActualChar(&LocalState) != '\0';x++) {
         Skip(&LocalState);
         Usize Offset = 1;
-
         Alice_Token* LocalToken = NULL;
-
         if (ActualChar(&LocalState) == ARCHIVE_MARKER) 
         {
             LocalToken = ReadArchiveMarker(&LocalState);
@@ -376,6 +434,7 @@ void Tokenize(Alice_BigGirl* Girl, Vector* Tokens)
         {
             LocalToken = ReadIndentifier(&LocalState);
         }
+
         if (LocalToken != NULL) {
             Offset = LocalToken -> Length;
             Add(Tokens, LocalToken);
