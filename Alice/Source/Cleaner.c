@@ -20,13 +20,13 @@ Bool IsPriorityDeclr(char* Line)
     }
     return False;
 }
-char* ReplaceAliases(LilMermaid_BigGirl* BigGirl)
+char* ReplaceAliases(Alice_BigGirl* BigGirl)
 {
     for (int x = 0; x < BigGirl -> SourceCode -> Size ; x++) {
         BigGirl -> SourceCode -> Chars[x] = SemicolonToNewLine(BigGirl -> SourceCode -> Chars[x]);
     }
 }
-char* GetLine(LilMermaid_BigGirl* BigGirl, Usize Start) 
+char* GetLine(Alice_BigGirl* BigGirl, Usize Start) 
 {
     int Length = 0;
     for (int x = Start ; BigGirl -> SourceCode -> Chars[x] != '\n' 
@@ -37,7 +37,7 @@ char* GetLine(LilMermaid_BigGirl* BigGirl, Usize Start)
     return Substring(BigGirl -> SourceCode -> Chars, Start, Start + Length);
 }
 
-void Organize(LilMermaid_BigGirl* BigGirl) 
+void Organize(Alice_BigGirl* BigGirl) 
 {
     String* ConstantDeclarations = FromStr("");
     String* RestingCode = FromStr("");
@@ -63,7 +63,7 @@ void Organize(LilMermaid_BigGirl* BigGirl)
     BigGirl -> SourceCode = FinalCode;
 }
 
-void Clean(LilMermaid_BigGirl* BigGirl) 
+void Clean(Alice_BigGirl* BigGirl) 
 {
     Vector Lines;
     New(&Lines, sizeof(String));

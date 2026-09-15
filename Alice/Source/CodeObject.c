@@ -1,7 +1,7 @@
 #include "Headers/CodeObject.h"
 #include "External/Libraries.h"
 #include "Headers/Lexer.h"
-void GirlAppend(LilMermaid_BigGirl* Girl, LilMermaid_CodeObject* CodeObject) 
+void GirlAppend(Alice_BigGirl* Girl, Alice_CodeObject* CodeObject) 
 {
     Add(Girl -> CodeObjects, CodeObject);
     
@@ -21,10 +21,10 @@ void GirlAppend(LilMermaid_BigGirl* Girl, LilMermaid_CodeObject* CodeObject)
     AddStr(Girl -> SourceCode, '\n');
 }
 
-void GirlInit(LilMermaid_BigGirl* Girl)
+void GirlInit(Alice_BigGirl* Girl)
 {
     Vector* TokenVector = malloc(sizeof(Vector));
-    New(TokenVector, sizeof(LilMermaid_CodeObject));
+    New(TokenVector, sizeof(Alice_CodeObject));
 
     Girl -> CodeObjects = TokenVector;
     Girl -> SourceCode = FromStr("");

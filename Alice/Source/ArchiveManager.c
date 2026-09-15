@@ -41,9 +41,9 @@ char* OpenFileNWindows(char* ArchivePath, Usize Capacity) {
     return totalBuffer;
 }
 
-LilMermaid_CodeObject* OpenMermaidFile(char* ArchivePath) 
+Alice_CodeObject* OpenMermaidFile(char* ArchivePath) 
 {
-    LilMermaid_CodeObject* NewCodeObject = malloc(sizeof(LilMermaid_CodeObject));
+    Alice_CodeObject* NewCodeObject = malloc(sizeof(Alice_CodeObject));
     char* Code = OpenFileNWindows(ArchivePath, 1024);
     if (Code == NULL) {
         printf("Could not the file!\n");

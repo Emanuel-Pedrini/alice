@@ -65,22 +65,22 @@ void Set(LexerState* MermaidState, Usize SetValue)
     }
 }
 
-LM_Token* CreateToken(
-    LM_TokenType Type,
+Alice_Token* CreateToken(
+    Alice_TokenType Type,
     Usize Start,
     Usize Length
 ) 
 {
-    LM_Token* Buffer = malloc(sizeof(LM_Token));
+    Alice_Token* Buffer = malloc(sizeof(Alice_Token));
     Buffer -> Type = Type;
     Buffer -> Start = Start;
     Buffer -> Length = Length;
     return Buffer;
 }
 
-LM_Token* ReadSpecial(LexerState* MermaidState) 
+Alice_Token* ReadSpecial(LexerState* MermaidState) 
 {
-    LM_TokenType Type = Tk_Illegal;
+    Alice_TokenType Type = Tk_Illegal;
     Usize Start = MermaidState -> Pointer;
     Usize Length = 1;
 
@@ -120,28 +120,14 @@ LM_Token* ReadSpecial(LexerState* MermaidState)
             break;
 
         case '*':
-            switch (Peek(MermaidState, 1))
-            {
-                case '*':
-                    Type = Tk_DoubleAsterisk;
-                    Length = 2;
-                    break;
-
-                default:
-                    Type = Tk_Asterisk;
-                    break;
-            }
+            Type = Tk_Asterisk;
             break;
+            
         case '<':
             switch (Peek(MermaidState, 1))
             {
-                case '<':
-                    Type = Tk_LeftDoubleArrow;
-                    Length = 2;
-                    break;
-
                 case '-':
-                    Type = Tk_Push;
+                    Type = Tk_LeftSetter;
                     Length = 2;
                     break;
 
@@ -151,24 +137,17 @@ LM_Token* ReadSpecial(LexerState* MermaidState)
             }
             break;
         case '>':
-            switch (Peek(MermaidState, 1))
-            {
-                case '>':
-                    Type = Tk_RightDoubleArrow;
-                    Length = 2;
-                    break;
-
-                default:
-                    Type = Tk_RightArrow;
-                    break;
-            }
+            Type = Tk_RightArrow;
             break;
+
         case '!':
             Type = Tk_Bang;
             break;
+
         case '^':
             Type = Tk_UpArrow;
             break;
+
         case '+':
             switch (Peek(MermaidState, 1))
             {
@@ -191,7 +170,7 @@ LM_Token* ReadSpecial(LexerState* MermaidState)
                     break;
 
                 case '>':
-                    Type = Tk_Pop;
+                    Type = Tk_RightSetter;
                     Length = 2;
                     break;
 
@@ -200,14 +179,23 @@ LM_Token* ReadSpecial(LexerState* MermaidState)
                     break;
             }
             break;
-        case '=':
+        case ':':
             switch (Peek(MermaidState, 1))
             {
-                case '=':
-                    Type = Tk_EqualEqual;
+                case ':':
+                    Type = Tk_DoubleColon;
                     Length = 2;
                     break;
 
+                default:
+                    Type = Tk_Colon;
+                    break;
+            }
+            break;
+
+        case '=':
+            switch (Peek(MermaidState, 1))
+            {
                 default:
                     Type = Tk_Equal;
                     break;
@@ -277,7 +265,7 @@ LM_Token* ReadSpecial(LexerState* MermaidState)
     return CreateToken(Type, Start, Length);
 }
 
-LM_TokenType Indentify(const char* Word) 
+Alice_TokenType Indentify(const char* Word) 
 {
     if (Is(Word, RETURN_KEYWORD)) 
     {
@@ -298,7 +286,7 @@ LM_TokenType Indentify(const char* Word)
     }
 }
 
-LM_Token* ReadIndentifier(LexerState* MermaidState) 
+Alice_Token* ReadIndentifier(LexerState* MermaidState) 
 {
     int Length = 0;
     Usize Start = MermaidState -> Pointer;
@@ -307,11 +295,11 @@ LM_Token* ReadIndentifier(LexerState* MermaidState)
         Length++;
     }
     char* Word =  Substring(MermaidState -> Code -> Chars, Start, (Start + Length));
-    LM_TokenType Type = Indentify(Word);
+    Alice_TokenType Type = Indentify(Word);
     return CreateToken(Type, Start, Length);
 }
 
-LM_Token* ReadString(LexerState* MermaidState)
+Alice_Token* ReadString(LexerState* MermaidState)
 {
     Next(MermaidState, 1);
     int Length = 0;
@@ -328,7 +316,7 @@ LM_Token* ReadString(LexerState* MermaidState)
     return CreateToken(Tk_String, Start, Length);
 }
 
-LM_Token* ReadNumerical(LexerState* MermaidState) 
+Alice_Token* ReadNumerical(LexerState* MermaidState) 
 {
     int Length = 0;
     Usize Start = MermaidState -> Pointer;
@@ -339,24 +327,7 @@ LM_Token* ReadNumerical(LexerState* MermaidState)
     return CreateToken(Tk_Integer, Start, Length);
 }
 
-LM_Token* ReadRegister(LexerState* MermaidState) 
-{
-    Next(MermaidState, 1);
-    Usize Start = MermaidState -> Pointer;
-    int Length = 0;
-    while (
-        (MermaidState -> Code -> Chars[Start + Length] != ' ' 
-        && IsIndentifierChar(MermaidState -> Code -> Chars[Start + Length]))
-        && !IsSpace(MermaidState -> Code -> Chars[Start + Length])
-        && !IsInvalid(ActualChar(MermaidState))) 
-    {
-        Length++;
-    }
-    char* RegisterName = Substring(MermaidState -> Code -> Chars, Start, (Start + Length));
-    return CreateToken(Tk_Register, Start, Length);
-}
-
-LM_Token* ReadArchiveMarker(LexerState* MermaidState)
+Alice_Token* ReadArchiveMarker(LexerState* MermaidState)
 {
     Next(MermaidState, 1);
     int Length = 0;
@@ -371,7 +342,7 @@ LM_Token* ReadArchiveMarker(LexerState* MermaidState)
     MermaidState -> Line = 1;
 }
 
-void Tokenize(LilMermaid_BigGirl* Girl, Vector* Tokens) 
+void Tokenize(Alice_BigGirl* Girl, Vector* Tokens) 
 {
     LexerState LocalState;
     LocalState.Char = '_';
@@ -383,16 +354,11 @@ void Tokenize(LilMermaid_BigGirl* Girl, Vector* Tokens)
         Skip(&LocalState);
         Usize Offset = 1;
 
-        LM_Token* LocalToken = NULL;
+        Alice_Token* LocalToken = NULL;
 
         if (ActualChar(&LocalState) == ARCHIVE_MARKER) 
         {
             LocalToken = ReadArchiveMarker(&LocalState);
-        }
-
-        else if (ActualChar(&LocalState) == REGISTER_MARKER) 
-        {
-            LocalToken = ReadRegister(&LocalState);
         }
         else if (ActualChar(&LocalState) == STRING_MARKER) 
         {

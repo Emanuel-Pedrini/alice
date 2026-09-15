@@ -20,7 +20,7 @@ CompAttributes* Reader(int NumberOfArguments, char** Arguments)
     while (Count < NumberOfArguments) 
     {
         char* Argument = Arguments[Count];
-        if (EndsWith(Argument, LilMermaidSuffix)) 
+        if (EndsWith(Argument, ALICE_SUFFIX)) 
         {
             String* s = FromStr(Argument);
             printf(">> %s \n", s -> Chars);
@@ -64,7 +64,7 @@ void ReadCallArgument(CompAttributes* Attributes, char* Argument) {
     }
 }
 
-void ReadPath(CompAttributes* CompilationAttributes, LilMermaid_BigGirl* BigGirl) {
+void ReadPath(CompAttributes* CompilationAttributes, Alice_BigGirl* BigGirl) {
     int l = 0;
     int x = 0;
     char act = CompilationAttributes -> Paths -> Chars[x];
@@ -77,7 +77,7 @@ void ReadPath(CompAttributes* CompilationAttributes, LilMermaid_BigGirl* BigGirl
                 l++;
             }
             char* Path = Substring(CompilationAttributes -> Paths -> Chars, x, x + l);
-            LilMermaid_CodeObject* NewCode = OpenMermaidFile(Path);
+            Alice_CodeObject* NewCode = OpenMermaidFile(Path);
             GirlAppend(BigGirl, NewCode);
         }
         x++;

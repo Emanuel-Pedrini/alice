@@ -9,14 +9,13 @@
 
 int main(int argc, char* argv[]) {
     CompAttributes* CompilationAttributes = Reader(argc, argv);
-    LilMermaid_BigGirl BigGirl;
+    Alice_BigGirl BigGirl;
     Vector Tokens;
-    New(&Tokens, sizeof(LM_Token));
+    New(&Tokens, sizeof(Alice_Token));
     GirlInit(&BigGirl);
     ReadPath(CompilationAttributes, &BigGirl);
     Clean(&BigGirl);
     Tokenize(&BigGirl, &Tokens);
     Parsenize(&BigGirl, &Tokens);
-
     return 0;
 }
