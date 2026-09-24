@@ -66,7 +66,8 @@ void Skip(LexerState* AliceState) {
     {
         if (ActualChar(AliceState) == '/' && Peek(AliceState, 1) == '/') 
         {
-            while (ActualChar(AliceState) != '\n' && !IsInvalid(ActualChar(AliceState))) {
+            while (ActualChar(AliceState) != '\n' 
+                    && !IsInvalid(ActualChar(AliceState))) {
                 if (ActualChar(AliceState) == '\n') 
                 {
                     AliceState -> Line++;
@@ -208,26 +209,12 @@ Alice_Token* ReadSpecial(LexerState* AliceState)
             break;
 
         case '+':
-            switch (Peek(AliceState, 1))
-            {
-                case '+':
-                    Type = Tk_PlusPLus;
-                    Length = 2;
-                    break;
+            Type = Tk_Plus;
 
-                default:
-                    Type = Tk_Plus;
-                    break;
-            }
             break;
         case '-':
             switch (Peek(AliceState, 1))
             {
-                case '-':
-                    Type = Tk_MinusMinus;
-                    Length = 2;
-                    break;
-
                 case '>':
                     Type = Tk_RightSetter;
                     Length = 2;
@@ -267,44 +254,14 @@ Alice_Token* ReadSpecial(LexerState* AliceState)
             break;
 
         case '/':
-            switch (Peek(AliceState, 1))
-            {
-                case '/':
-                    Type = Tk_Div;
-                    Length = 2;
-                    break;
-
-                default:
-                    Type = Tk_DivDiv;
-                    break;
-            }
+            Type = Tk_Div;
             break;
 
         case '\\':
-            switch (Peek(AliceState, 1))
-            {
-                case '\\':
-                    Type = Tk_DoubleBackslash;
-                    Length = 2;
-                    break;
-
-                default:
-                    Type = Tk_Backslash;
-                    break;
-            }
+            Type = Tk_Backslash;
             break;
         case '&':
-            switch (Peek(AliceState, 1))
-            {
-                case '&':
-                    Type = Tk_DoubleCommercial;
-                    Length = 2;
-                    break;
-
-                default:
-                    Type = Tk_Commercial;
-                    break;
-            }
+            Type = Tk_Commercial;
             break;
         case '|':
             switch (Peek(AliceState, 1))
@@ -326,17 +283,65 @@ Alice_Token* ReadSpecial(LexerState* AliceState)
 
 Alice_TokenType Indentify(const char* Word) 
 {
-    if (Is(Word, RETURN_KEYWORD)) 
+    if (IsCaseEqual(Word, RETURN_KEYWORD)) 
     {
         return Tk_Return;
     }
-    else if (Is(Word, CONSTANT_KEYWORD)) {
+    else if (IsCaseEqual(Word, CONSTANT_KEYWORD)) {
+        return Tk_Constant;
+    }
+    else if (IsCaseEqual(Word, VARIABLE_KEYWORD)) {
+        return Tk_Variable;
+    }
+    else if (IsCaseEqual(Word, FOR_KEYWORD)) {
+        return Tk_For;
+    }
+    else if (IsCaseEqual(Word, WHILE_KEYWORD)) {
+        return Tk_While;
+    }
+    else if (IsCaseEqual(Word, INTEGER_KEYWORD)) {
+        return Tk_Integer;
+    }
+    else if (IsCaseEqual(Word, FLOATING_KEYWORD)) {
+        return Tk_Floating;
+    }
+    else if (IsCaseEqual(Word, USIZE_KEYWORD)) {
+        return Tk_Usize;
+    }
+    else if (IsCaseEqual(Word, CHAR_KEYWORD)) {
+        return Tk_Char;
+    }
+    else if (IsCaseEqual(Word, FUNCTION_KEYWORD)) {
+        return Tk_Function;
+    }
+    else if (IsCaseEqual(Word, LOOP_KEYWORD)) {
+        return Tk_Loop;
+    }
+    else if (IsCaseEqual(Word, BREAK_KEYWORD)) {
+        return Tk_Break;
+    }
+    else if (IsCaseEqual(Word, CONTINUE_KEYWORD)) {
+        return Tk_Continue;
+    }
+    else if (IsCaseEqual(Word, DEFINE_KEYWORD)) {
         return Tk_Define;
     }
-    else if (Is(Word, WRITE_KEYWORD)) {
-        return Tk_Write;
+    else if (IsCaseEqual(Word, IF_KEYWORD)) {
+        return Tk_If;
     }
-    else if (Is(Word, END_OF_CODE_KEYWORD)) {
+    else if (IsCaseEqual(Word, ELSE_IF_KEYWORD)) {
+        return Tk_Elif;
+    }
+    else if (IsCaseEqual(Word, ELSE_KEYWORD)) {
+        return Tk_Else;
+    }
+    else if (IsCaseEqual(Word, VOID_KEYWORD)) {
+        return TK_Void;
+    }
+    else if (IsCaseEqual(Word, NULL_KEYWORD)) {
+        return Tk_Null;
+    }
+    else if (IsCaseEqual(Word, END_OF_CODE_KEYWORD)) {
         return Tk_EndOfCode;
     }
     else 
@@ -383,7 +388,7 @@ Alice_Token* ReadNumerical(LexerState* AliceState)
     {
         Length++;
     }
-    return CreateToken(Tk_Integer, Start, Length);
+    return CreateToken(Tk_Decimal, Start, Length);
 }
 
 Alice_Token* ReadArchiveMarker(LexerState* AliceState)

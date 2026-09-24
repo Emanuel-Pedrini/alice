@@ -56,11 +56,11 @@ CompAttributes* Reader(int NumberOfArguments, char** Arguments)
 }
 
 void ReadCallArgument(CompAttributes* Attributes, char* Argument) {
-    if (Is(Argument, "o") || Is(Argument, "O")) {
-        Attributes -> Target = MACHINE_CODE;
+    if (IsEqual(Argument, "c") || IsEqual(Argument, "C")) {
+        Attributes -> Target = C;    
     }
-    else if (Is(Argument, "c") || Is(Argument, "C")) {
-        Attributes -> Target = C;
+    else {
+        Attributes -> Target = LLVM;
     }
 }
 

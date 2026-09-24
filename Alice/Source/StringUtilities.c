@@ -22,7 +22,7 @@ char* Substring(char* String, Usize Start, Usize End)
     return NULL;
 }
 
-Bool Is(const char* Word, const char* Src) {
+Bool IsEqual(const char* Word, const char* Src) {
     if (strcmp(Word, Src) == 0) 
     {
         return True;
@@ -30,6 +30,13 @@ Bool Is(const char* Word, const char* Src) {
     return False;
 }
 
+Bool IsCaseEqual(const char* Word, const char* Src) {
+    if (strcasecmp(Word, Src) == 0) 
+    {
+        return True;
+    }
+    return False;
+}
 
 Bool EndsWith(char* String, char* Suffix)
 {
@@ -76,7 +83,7 @@ Bool IsNumerical(const char Char)
 }
 
 Bool IsValidNumerical(const char Char) {
-    if ((Char >= '0' && Char <= '9') || (Char >= 'a' && Char <= 'z') || (Char >= 'A' && Char <= 'z')) {
+    if ((Char >= '0' && Char <= '9')) {
         return True;
     }
     return False;

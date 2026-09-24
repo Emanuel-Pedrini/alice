@@ -67,7 +67,7 @@ void Clean(Alice_BigGirl* BigGirl)
 {
     Vector Lines;
     New(&Lines, sizeof(String));
-    ReplaceAliases(BigGirl);
+    //ReplaceAliases(BigGirl);
     Organize(BigGirl);
 }
 
