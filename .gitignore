@@ -1,10 +1,5 @@
-Alice/Headers/
-Alice/External/
-Chesire/Control
-Chesire/Headers
 Chesire/Rust/target/
 Chesire/Rust/Cargo.lock
 Chesire/Rust/Cargo.toml
-Chesire/CharUtils.c
 .vscode/
 *.exe
