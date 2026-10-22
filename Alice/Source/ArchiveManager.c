@@ -46,7 +46,7 @@ Alice_CodeObject* OpenAliceFile(char* ArchivePath)
     Alice_CodeObject* NewCodeObject = malloc(sizeof(Alice_CodeObject));
     char* Code = OpenFileNWindows(ArchivePath, 1024);
     if (Code == NULL) {
-        printf("Could not the file!\n");
+        printf(">> ERROR : Could not find '%s'!\n", ArchivePath);
         return NULL;
     }
     char* Path = ArchivePath;

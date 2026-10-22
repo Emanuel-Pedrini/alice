@@ -4,6 +4,9 @@
 #include "Headers/Lexer.h"
 #include "External/Libraries.h"
 
+#define IfKeyword(KEYWORD, TOKEN) if (IsCaseEqual(Word, KEYWORD)) {return TOKEN;}
+#define Keyword(KEYWORD, TOKEN) else if (IsCaseEqual(Word, KEYWORD)) {return TOKEN;}
+
 char ActualChar(LexerState* AliceState) {
     return AliceState -> Code -> Chars[AliceState -> Pointer];
 }
@@ -15,50 +18,25 @@ char Peek(LexerState* AliceState, int Offset) {
 Alice_Token* CreateToken(
     Alice_TokenType Type,
     Usize Start,
-    Usize Length
+    Usize Length,
+    char* Literal
 ) 
 {
     Alice_Token* Buffer = malloc(sizeof(Alice_Token));
     Buffer -> Type = Type;
     Buffer -> Start = Start;
     Buffer -> Length = Length;
+    Buffer -> Literal = Literal;
     return Buffer;
 }
 
 void Next(LexerState* AliceState, int Offset) {
-    AliceState -> Pointer += Offset;
-}
-
-Usize MeasureIndentation(LexerState* AliceState) 
-{
-    Usize TabCount = 0;
-    Usize LexerPointer = AliceState -> Pointer + 1;
-    while ((AliceState -> Code -> Chars[LexerPointer] == '\t') || (AliceState -> Code -> Chars[LexerPointer] == ' ')) 
-    {
-        TabCount++;
-        LexerPointer++;
-    }
-    return TabCount;
-}
-
-Alice_Token* HandleIndentation(LexerState* AliceState) {
-    AliceState -> Line++;
-    Usize Start = AliceState -> Pointer;
-    Usize ActualIndentation = MeasureIndentation(AliceState);
-    if (ActualIndentation > AliceState -> Indentation) {
-        AliceState -> Indentation = ActualIndentation;
-        return CreateToken(
-            Tk_Indent,
-            Start,
-            1);
-    }
-    else if (ActualIndentation < AliceState -> Indentation) {
-        AliceState -> Indentation = ActualIndentation;
-        return CreateToken(
-            Tk_Dedent,
-            Start,
-            1);
-    }
+	Usize NextPointer = AliceState -> Pointer + Offset;
+	if (IsInvalid(AliceState -> Code -> Chars[NextPointer]))
+	{
+    	AliceState -> Pointer = NextPointer;
+	}
+	AliceState -> Pointer = NextPointer;
 }
 
 void Skip(LexerState* AliceState) {
@@ -88,7 +66,7 @@ void Skip(LexerState* AliceState) {
             Next(AliceState, 2);
         }
 
-        if ((ActualChar(AliceState) == ' ') && !IsInvalid(ActualChar(AliceState))) 
+        if ((ActualChar(AliceState) == ' ' || ActualChar(AliceState) == '\n') && !IsInvalid(ActualChar(AliceState))) 
         {
             Next(AliceState, 1);
         } 
@@ -114,16 +92,6 @@ Alice_Token* ReadSpecial(LexerState* AliceState)
     Usize Length = 1;
 
     switch (ActualChar(AliceState)) {
-        case '\n':
-            if (MeasureIndentation(AliceState) > AliceState -> Indentation 
-            || MeasureIndentation(AliceState) < AliceState -> Indentation) 
-            {
-                Type = HandleIndentation(AliceState) -> Type;
-            }
-            else {
-                return NULL;
-            }
-            break;
         case '@':
             Type = Tk_Adress;
             break;
@@ -274,80 +242,72 @@ Alice_Token* ReadSpecial(LexerState* AliceState)
         case ',':
             Type = Tk_Comma;
             break;
+
+        case '.':
+            switch (Peek(AliceState, 1))
+            {
+				case '.':
+					Type = Tk_DoublePoint;
+					Length = 2;
+					break;
+                default:
+                    Type = Tk_Point;
+                    break;
+            }
+            break;
+
         default:
             Type = Tk_Illegal;
             break;
     }
-    return CreateToken(Type, Start, Length);
+    return CreateToken(Type, Start, Length, "");
 }
 
 Alice_TokenType Indentify(const char* Word) 
 {
-    if (IsCaseEqual(Word, RETURN_KEYWORD)) 
-    {
-        return Tk_Return;
-    }
-    else if (IsCaseEqual(Word, CONSTANT_KEYWORD)) {
-        return Tk_Constant;
-    }
-    else if (IsCaseEqual(Word, VARIABLE_KEYWORD)) {
-        return Tk_Variable;
-    }
-    else if (IsCaseEqual(Word, FOR_KEYWORD)) {
-        return Tk_For;
-    }
-    else if (IsCaseEqual(Word, WHILE_KEYWORD)) {
-        return Tk_While;
-    }
-    else if (IsCaseEqual(Word, INTEGER_KEYWORD)) {
-        return Tk_Integer;
-    }
-    else if (IsCaseEqual(Word, FLOATING_KEYWORD)) {
-        return Tk_Floating;
-    }
-    else if (IsCaseEqual(Word, USIZE_KEYWORD)) {
-        return Tk_Usize;
-    }
-    else if (IsCaseEqual(Word, CHAR_KEYWORD)) {
-        return Tk_Char;
-    }
-    else if (IsCaseEqual(Word, FUNCTION_KEYWORD)) {
-        return Tk_Function;
-    }
-    else if (IsCaseEqual(Word, LOOP_KEYWORD)) {
-        return Tk_Loop;
-    }
-    else if (IsCaseEqual(Word, BREAK_KEYWORD)) {
-        return Tk_Break;
-    }
-    else if (IsCaseEqual(Word, CONTINUE_KEYWORD)) {
-        return Tk_Continue;
-    }
-    else if (IsCaseEqual(Word, DEFINE_KEYWORD)) {
-        return Tk_Define;
-    }
-    else if (IsCaseEqual(Word, IF_KEYWORD)) {
-        return Tk_If;
-    }
-    else if (IsCaseEqual(Word, ELSE_IF_KEYWORD)) {
-        return Tk_Elif;
-    }
-    else if (IsCaseEqual(Word, ELSE_KEYWORD)) {
-        return Tk_Else;
-    }
-    else if (IsCaseEqual(Word, VOID_KEYWORD)) {
-        return TK_Void;
-    }
-    else if (IsCaseEqual(Word, NULL_KEYWORD)) {
-        return Tk_Null;
-    }
-    else if (IsCaseEqual(Word, END_OF_CODE_KEYWORD)) {
-        return Tk_EndOfCode;
-    }
-    else 
-    {
-        return Tk_Indentifier;
-    }
+	IfKeyword(RETURN_KEYWORD, Tk_Return)
+	Keyword(DO_KEYWORD, Tk_Do)
+	Keyword(DEFINE_KEYWORD, Tk_Define)
+	Keyword(CONSTANT_KEYWORD, Tk_Constant)
+	Keyword(VARIABLE_KEYWORD, Tk_Variable)
+	Keyword(FOR_KEYWORD, Tk_For)
+	Keyword(WHILE_KEYWORD, Tk_While)
+	Keyword(FUNCTION_KEYWORD, Tk_Function)
+	Keyword(LOOP_KEYWORD, Tk_Loop)
+	Keyword(BREAK_KEYWORD, Tk_Break)
+	Keyword(CONTINUE_KEYWORD, Tk_Continue)
+	Keyword(IF_KEYWORD, Tk_If)
+	Keyword(ELSE_IF_KEYWORD, Tk_Elif)
+	Keyword(ELSE_KEYWORD, Tk_Else)
+	Keyword(END_KEYWORD, Tk_End)
+	Keyword(STATIC_KEYWORD, Tk_Static)
+	Keyword(LOCAL_KEYWORD, Tk_Local)
+	Keyword(GLOBAL_KEYWORD, Tk_Global)
+	Keyword(EXCEPT_KEYWORD, Tk_Except)
+	Keyword(TRY_KEYWORD, Tk_Try)
+	Keyword(SELF_KEYWORD, Tk_Self)
+	Keyword(NULL_KEYWORD, Tk_Null)
+	Keyword(NUMBER_KEYWORD, Tk_Number)
+	Keyword(CHAR_KEYWORD, Tk_Char)
+	Keyword(THEN_KEYWORD, Tk_Then)
+	Keyword(IS_KEYWORD, Tk_Is)
+	Keyword(TO_KEYWORD, Tk_To)
+	Keyword(HERE_KEYWORD, Tk_Here)
+	Keyword(IN_KEYWORD, Tk_In)
+	Keyword(THIS_KEYWORD, Tk_This)
+	Keyword(INSERT_KEYWORD, Tk_Insert)
+	Keyword(GO_KEYWORD, Tk_Go)
+	Keyword(TIMES_KEYWORD, Tk_Times)
+	Keyword(AWAIT_KEYWORD, Tk_Await)
+	Keyword(END_OF_CODE_KEYWORD, Tk_EndOfCode)
+	Keyword(AS_KEYWORD, Tk_As)
+	Keyword(BOX_KEYWORD, Tk_Box)
+	Keyword(OPEN_KEYWORD, Tk_Open)
+	Keyword(CLOSE_KEYWORD, Tk_Close)
+	Keyword(ALICE_KEYWORD, Tk_Alice)
+	Keyword(YOURSELF_KEYWORD, Tk_Yourself)
+	Keyword(WITH_KEYWORD, Tk_With)
+    else {return Tk_Indentifier;}
 }
 
 Alice_Token* ReadIndentifier(LexerState* AliceState) 
@@ -360,7 +320,7 @@ Alice_Token* ReadIndentifier(LexerState* AliceState)
     }
     char* Word =  Substring(AliceState -> Code -> Chars, Start, (Start + Length));
     Alice_TokenType Type = Indentify(Word);
-    return CreateToken(Type, Start, Length);
+    return CreateToken(Type, Start, Length, Word);
 }
 
 Alice_Token* ReadString(LexerState* AliceState)
@@ -368,16 +328,20 @@ Alice_Token* ReadString(LexerState* AliceState)
     Next(AliceState, 1);
     int Length = 0;
     Usize Start = AliceState -> Pointer;
-    while ((AliceState -> Code -> Chars[Start + Length]) != STRING_MARKER && !IsInvalid(ActualChar(AliceState))) 
+    while ((
+        AliceState -> Code -> Chars[Start + Length]) != STRING_MARKER)
     {
+        if (AliceState -> Code -> Chars[Start + Length] == '\0')
+        {
+            printf("Unclosed string!");
+            break;
+        }
         Length++;
     }
     char* Word =  Substring(AliceState -> Code -> Chars, Start, (Start + Length));
 
-    // Temporary
-    printf("%s ", Word);
     Next(AliceState, 1);
-    return CreateToken(Tk_String, Start, Length);
+    return CreateToken(Tk_String, Start, Length, Word);
 }
 
 Alice_Token* ReadNumerical(LexerState* AliceState) 
@@ -388,7 +352,8 @@ Alice_Token* ReadNumerical(LexerState* AliceState)
     {
         Length++;
     }
-    return CreateToken(Tk_Decimal, Start, Length);
+    char* Word =  Substring(AliceState -> Code -> Chars, Start, (Start + Length));
+    return CreateToken(Tk_Decimal, Start, Length, Word);
 }
 
 Alice_Token* ReadArchiveMarker(LexerState* AliceState)
@@ -396,13 +361,15 @@ Alice_Token* ReadArchiveMarker(LexerState* AliceState)
     Next(AliceState, 1);
     int Length = 0;
     Usize Start = AliceState -> Pointer;
-    while ((AliceState -> Code -> Chars[Start + Length]) != ARCHIVE_MARKER && !IsInvalid(ActualChar(AliceState))) 
+    while ((
+        AliceState -> Code -> Chars[Start + Length]) != ARCHIVE_MARKER 
+        && AliceState -> Code -> Chars[Start + Length] != '\0') 
     {
         Length++;
     }
     char* Word =  Substring(AliceState -> Code -> Chars, Start, (Start + Length));
     Next(AliceState, 1);
-    return CreateToken(Tk_ArchiveMarker, Start, Length);
+    return CreateToken(Tk_ArchiveMarker, Start, Length, Word);
     AliceState -> Line = 1;
 }
 
@@ -412,13 +379,15 @@ void Tokenize(Alice_BigGirl* Girl, Vector* Tokens)
     LocalState.Char = '_';
     LocalState.Pointer = 0;
     LocalState.Line = 1;
-    LocalState.Indentation = 0;
 
     LocalState.Code = Girl -> SourceCode;
     for (int x = 0; ActualChar(&LocalState) != '\0';x++) {
         Skip(&LocalState);
+		if (IsInvalid(ActualChar(&LocalState))) break;
+
         Usize Offset = 1;
         Alice_Token* LocalToken = NULL;
+
         if (ActualChar(&LocalState) == ARCHIVE_MARKER) 
         {
             LocalToken = ReadArchiveMarker(&LocalState);
@@ -446,4 +415,6 @@ void Tokenize(Alice_BigGirl* Girl, Vector* Tokens)
         }
         Next(&LocalState, Offset);
     }
+    Alice_Token END_TOKEN = {Tk_EndOfCode, "__END_OF_CODE__", LocalState.Pointer, 0};
+    Add(Tokens, &END_TOKEN);
 }
