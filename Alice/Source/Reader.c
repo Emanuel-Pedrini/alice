@@ -3,7 +3,6 @@
 #include "Headers/StringUtilities.h"
 #include "Headers/InterpreterConstants.h"
 #include "Headers/Lexer.h"
-#include "Headers/Cleaner.h"
 #include "Headers/Reader.h"
 #include "Headers/Lexer.h"
 
@@ -64,7 +63,7 @@ void ReadCallArgument(CompAttributes* Attributes, char* Argument) {
     }
 }
 
-void ReadPath(CompAttributes* CompilationAttributes, Alice_BigGirl* BigGirl) {
+Bool ReadPath(CompAttributes* CompilationAttributes, Alice_BigGirl* BigGirl) {
     int l = 0;
     int x = 0;
     char act = CompilationAttributes -> Paths -> Chars[x];
@@ -78,9 +77,14 @@ void ReadPath(CompAttributes* CompilationAttributes, Alice_BigGirl* BigGirl) {
             }
             char* Path = Substring(CompilationAttributes -> Paths -> Chars, x, x + l);
             Alice_CodeObject* NewCode = OpenAliceFile(Path);
+            if (NewCode == NULL) 
+            {
+                return False;
+            }
             GirlAppend(BigGirl, NewCode);
         }
         x++;
         act = CompilationAttributes -> Paths -> Chars[x];
     }
+    return True;
 }
