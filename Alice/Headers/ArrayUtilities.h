@@ -15,4 +15,6 @@ void* Get(Vector* Vector, Usize Index);
 void Free(Vector* Vector);
 Usize Len(Vector* Vector);
 
+#define Vec(V, E) Vector* V = malloc(sizeof(Vector));New(V, sizeof(E));
+
 #endif

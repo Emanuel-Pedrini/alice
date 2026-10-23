@@ -4,6 +4,10 @@
 #include "Headers/InterpreterTypes.h"
 #include "Headers/Lexer.h"
 
+struct StructParserNode;
+struct StructAliceType;
+struct Block;
+
 typedef enum EnumInstructionType {
     AdressDeclr,
     OperationDeclr,
@@ -11,11 +15,31 @@ typedef enum EnumInstructionType {
     PositionDeclr
 } NodeType;
 
+typedef struct StructAliceType 
+{
+
+} AliceType;
+
+typedef struct StructBlock
+{
+    Vector* Nodes;
+} Block;
+
 typedef struct StructParserNode {
     NodeType Type;
     Usize Line;
     union 
     {
+        struct StructFunctionArgument 
+        {
+            String* Name;
+            AliceType* Type;
+        } FunctionArgument;
+        struct StructFunction
+        {
+            String* Name;
+            AliceType* ReturnType;
+        } Function;
     } Data;
 } ParserNode;
 
@@ -26,5 +50,5 @@ typedef struct StructParserState
     Alice_Token* Actual;
 } ParserState;
 
-void Parsenize(Alice_BigGirl* BigGirl, Vector* Tokens);
+Vector* Parsenize(Alice_BigGirl* BigGirl, Vector* Tokens);
 #endif

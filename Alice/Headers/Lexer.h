@@ -8,10 +8,10 @@
 #define ARCHIVE_MARKER '`'
 
 #define CONSTANT_KEYWORD "const"
-#define VARIABLE_KEYWORD "let"
+#define VARIABLE_KEYWORD "var"
 #define FOR_KEYWORD "for"
 #define WHILE_KEYWORD "while"
-#define FUNCTION_KEYWORD "func"
+#define FUNCTION_KEYWORD "fn"
 #define LOOP_KEYWORD "loop"
 
 #define BREAK_KEYWORD "break"
@@ -32,25 +32,19 @@
 #define SELF_KEYWORD "self"
 #define THEN_KEYWORD "then"
 
+#define HAS_KEYWORD "has"
 #define IS_KEYWORD "is"
-#define TO_KEYWORD "to"
 #define GO_KEYWORD "go"
-#define INSERT_KEYWORD "insert"
 #define IN_KEYWORD "in"
-#define THIS_KEYWORD "this"
-#define HERE_KEYWORD "here"
-#define TIMES_KEYWORD "times"
 #define AWAIT_KEYWORD "await"
 #define AS_KEYWORD "as"
-#define BOX_KEYWORD "box"
-#define OPEN_KEYWORD "open"
-#define CLOSE_KEYWORD "close"
-#define WITH_KEYWORD "with"
-#define YOURSELF_KEYWORD "yourself"
 
-#define NULL_KEYWORD "null"
-#define NUMBER_KEYWORD "int"
-#define CHAR_KEYWORD "char"
+#define NOT_KEYWORD "not"
+#define AND_KEYWORD "and"
+#define OR_KEYWORD "or"
+
+#define RANGE_KEYWORD "range"
+
 #define ALICE_KEYWORD "alice"
 
 
@@ -66,7 +60,7 @@ typedef struct {
 
 } LexerState;
 
-void Tokenize(Alice_BigGirl* Girl, Vector* Tokens);
+Vector* Tokenize(Alice_BigGirl* Girl);
 Bool IsEqual(const char* Word, const char* Src);
 void Skip(LexerState* AliceState);
 
@@ -157,24 +151,21 @@ typedef enum {
     Tk_Self = 72,
     Tk_Then = 73,
     
-    Tk_To = 74,
     Tk_In = 75,
     Tk_Go = 76,
-    Tk_Insert = 77,
-    Tk_Here = 78,
-    Tk_This = 79,
     Tk_Is = 80,
-    Tk_Times = 81,
     Tk_Await = 82,
     Tk_As = 83,
     
-    Tk_Open = 86,
-    Tk_Close = 87,
-    Tk_Box = 88,
     Tk_Alice = 89,
-    Tk_Yourself = 90,
-    Tk_With = 91,
     Tk_DoublePoint = 92,
+    Tk_TriplePoint = 93,
+    Tk_Has = 94,
+
+    Tk_And = 95,
+    Tk_Or = 96,
+    Tk_Not = 97,
+    Tk_Range = 104,
 
     Tk_EndOfCode 
 

@@ -10,16 +10,11 @@ Bool ReadAndDecode(int argc, char* argv[])
 {
     CompAttributes* CompilationAttributes = Reader(argc, argv);
     Alice_BigGirl BigGirl;
-    Vector Tokens;
-    New(&Tokens, sizeof(Alice_Token));
     GirlInit(&BigGirl);
     Bool Result = ReadPath(CompilationAttributes, &BigGirl);
-    if (!Result) 
-    {
-        return 0;
-    }
-    Tokenize(&BigGirl, &Tokens);
-    Parsenize(&BigGirl, &Tokens);
+    if (!Result) return 0;
+    Vector* Tokens = Tokenize(&BigGirl);
+    Parsenize(&BigGirl, Tokens);
     
     {
 
@@ -27,10 +22,10 @@ Bool ReadAndDecode(int argc, char* argv[])
     **TEMPORARY : ONLY FOR TESTS, REMOVE LATER. 
     */
     String* x = FromStr("");
-    for (int i = 0 ; i < Len(&Tokens) ; i++) 
+    for (int i = 0 ; i < Len(Tokens) ; i++) 
     {
         char p[50];
-        Alice_Token* t = Get(&Tokens, i);
+        Alice_Token* t = (Alice_Token*)Get(Tokens, i);
         String* s = FromStr("");
         char* c = Substring(BigGirl.SourceCode -> Chars, t -> Start, t-> Start + t -> Length);
         if (t -> Type == Tk_Dedent) 

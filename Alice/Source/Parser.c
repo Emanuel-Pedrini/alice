@@ -1,5 +1,8 @@
 #include "Headers/Parser.h"
 #include "External/Libraries.h"
+
+#define Node(N) ParserNode* N = malloc(sizeof(ParserNode));
+
 void ParserSet(ParserState* AliceState, Usize SetValue) 
 {
     AliceState -> Pointer = SetValue;
@@ -22,8 +25,6 @@ Alice_Token* ParserPeek(ParserState* AliceState, int Offset)
     t = Get(AliceState -> Tokens, Pos);
     return t;
 }
-#define APeek(E) ((ParserPeek(AliceState, 1) -> Type) == (E))
-#define Is(E) ((ParserActual(&LocalState) -> Type) == (E))
 
 Bool ParserExpect(ParserState* AliceState, Alice_TokenType Expect, int Offset)
 {
@@ -32,12 +33,16 @@ Bool ParserExpect(ParserState* AliceState, Alice_TokenType Expect, int Offset)
     return t -> Type == Expect ? True : False;
 }
 
-void Test(ParserState* AliceState)
+ParserNode* ParserRead(ParserState* AliceState)
 {
-    printf("Alice!");
+    Node(N)
 }
 
-void Parsenize(Alice_BigGirl* BigGirl, Vector* Tokens) 
+#define NextIs(E) ((ParserPeek(&LocalState, 1) -> Type) == (E))
+#define Is(E) ((ParserActual(&LocalState) -> Type) == (E))
+#define Alice (Is(Tk_Alice) && NextIs(Tk_Comma))
+
+Vector* Parsenize(Alice_BigGirl* BigGirl, Vector* Tokens) 
 {
     ParserState LocalState;
     LocalState.Pointer = 0;
@@ -51,14 +56,15 @@ void Parsenize(Alice_BigGirl* BigGirl, Vector* Tokens)
     while (1)
     {
         if Is(Tk_EndOfCode) break;
-        if Is(Tk_Alice)
+        if Alice
         { 
-            printf("Alice!\n");
-            ParserNext(&LocalState, 1);
+            ParserNext(&LocalState, 2);
+            printf("> %s\n", ParserActual(&LocalState) -> Literal);
         }
         else 
         {
             ParserNext(&LocalState, 1);
         }
     }
+    return NULL;
 }
