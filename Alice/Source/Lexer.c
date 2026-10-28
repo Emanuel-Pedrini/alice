@@ -247,8 +247,18 @@ Alice_Token* ReadSpecial(LexerState* AliceState)
             switch (Peek(AliceState, 1))
             {
 				case '.':
-					Type = Tk_DoublePoint;
-					Length = 2;
+					switch (Peek(AliceState, 2))
+					{
+						case '.':
+							Type = Tk_TriplePoint;
+							Length = 3;
+							break;
+
+						default:
+							Type = Tk_DoublePoint;
+							Length = 2;
+							break;
+					}
 					break;
                 default:
                     Type = Tk_Point;
@@ -286,27 +296,19 @@ Alice_TokenType Indentify(const char* Word)
 	Keyword(EXCEPT_KEYWORD, Tk_Except)
 	Keyword(TRY_KEYWORD, Tk_Try)
 	Keyword(SELF_KEYWORD, Tk_Self)
-	Keyword(NULL_KEYWORD, Tk_Null)
-	Keyword(NUMBER_KEYWORD, Tk_Number)
-	Keyword(CHAR_KEYWORD, Tk_Char)
 	Keyword(THEN_KEYWORD, Tk_Then)
 	Keyword(IS_KEYWORD, Tk_Is)
-	Keyword(TO_KEYWORD, Tk_To)
-	Keyword(HERE_KEYWORD, Tk_Here)
 	Keyword(IN_KEYWORD, Tk_In)
-	Keyword(THIS_KEYWORD, Tk_This)
-	Keyword(INSERT_KEYWORD, Tk_Insert)
 	Keyword(GO_KEYWORD, Tk_Go)
-	Keyword(TIMES_KEYWORD, Tk_Times)
 	Keyword(AWAIT_KEYWORD, Tk_Await)
 	Keyword(END_OF_CODE_KEYWORD, Tk_EndOfCode)
 	Keyword(AS_KEYWORD, Tk_As)
-	Keyword(BOX_KEYWORD, Tk_Box)
-	Keyword(OPEN_KEYWORD, Tk_Open)
-	Keyword(CLOSE_KEYWORD, Tk_Close)
 	Keyword(ALICE_KEYWORD, Tk_Alice)
-	Keyword(YOURSELF_KEYWORD, Tk_Yourself)
-	Keyword(WITH_KEYWORD, Tk_With)
+	Keyword(HAS_KEYWORD, Tk_Has)
+	Keyword(NOT_KEYWORD, Tk_Not)
+	Keyword(AND_KEYWORD, Tk_And)
+	Keyword(OR_KEYWORD, Tk_Or)
+	Keyword(RANGE_KEYWORD, Tk_Range)
     else {return Tk_Indentifier;}
 }
 
@@ -373,8 +375,9 @@ Alice_Token* ReadArchiveMarker(LexerState* AliceState)
     AliceState -> Line = 1;
 }
 
-void Tokenize(Alice_BigGirl* Girl, Vector* Tokens) 
+Vector* Tokenize(Alice_BigGirl* Girl) 
 {
+	VECTOR(Tokens, Alice_Token)
     LexerState LocalState;
     LocalState.Char = '_';
     LocalState.Pointer = 0;
@@ -411,10 +414,12 @@ void Tokenize(Alice_BigGirl* Girl, Vector* Tokens)
 
         if (LocalToken != NULL) {
             Offset = LocalToken -> Length;
+            LocalToken -> Line = LocalState.Line;
             Add(Tokens, LocalToken);
         }
         Next(&LocalState, Offset);
     }
     Alice_Token END_TOKEN = {Tk_EndOfCode, "__END_OF_CODE__", LocalState.Pointer, 0};
     Add(Tokens, &END_TOKEN);
+	return Tokens;
 }

@@ -22,7 +22,6 @@ CompAttributes* Reader(int NumberOfArguments, char** Arguments)
         if (EndsWith(Argument, ALICE_SUFFIX)) 
         {
             String* s = FromStr(Argument);
-            printf(">> %s \n", s -> Chars);
             AddStr(Attributes -> Paths, '{');
             AppendStr(Attributes -> Paths, Argument);
             AddStr(Attributes -> Paths, '}');

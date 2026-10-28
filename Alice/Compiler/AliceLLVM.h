@@ -1,0 +1,3 @@
+#ifndef __ALICE_LLVM_COMPILER__
+#define __ALICE_LLVM_COMPILER__
+#endif

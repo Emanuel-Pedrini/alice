@@ -23,8 +23,12 @@ typedef struct {
 } String;
 void NewStr(String* Str);
 void AddStr(String* Str, const char Char);
-void AppendStr(String* Str, char* Src);
+void AppendStr(String* Str, const char* Src);
 String* FromStr(const char* Src);
 String* ConcatStr(String* Str, String* Src);
+Bool CompStr(String* Str, String* Src);
+
+#define SPTR(S) S -> Chars
+#define PSTR(P) FromStr(P)
 
 #endif

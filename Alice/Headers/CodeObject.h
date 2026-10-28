@@ -17,6 +17,6 @@ typedef struct {
 } Alice_BigGirl;
 
 void GirlAppend(Alice_BigGirl* Girl, Alice_CodeObject* CodeObject);
-void GirlInit(Alice_BigGirl* Girl);
+Alice_BigGirl* GirlNew();
 
 #endif

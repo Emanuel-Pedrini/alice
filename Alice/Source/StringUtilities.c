@@ -167,7 +167,7 @@ void AddStr(String* Str, const char Char)
     Str -> Chars[Str -> Size] = '\0';
 }
 
-void AppendStr(String* Str, char* Src)
+void AppendStr(String* Str, const char* Src)
 {
     int Size = strlen(Src);
     for (int x = 0 ; x < Size ; x++) 
@@ -298,4 +298,10 @@ Bool IsSpace(const char Char)
         return True;
     }
     return False;
+}
+
+Bool CompStr(String* Str, String* Src)
+{
+
+    return (strcmp(Str -> Chars, Src -> Chars) == 0);
 }

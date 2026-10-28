@@ -5,21 +5,19 @@
 #include "Headers/Lexer.h"
 #include "Headers/Parser.h"
 #include "Headers/Reader.h"
+#include "Headers/DictionaryUtilities.h"
+#include "Compiler/AliceCompilerUtilities.h"
+#include "Compiler/AliceC.h"
+#include "Headers/AliceTypes.h"
 
 Bool ReadAndDecode(int argc, char* argv[])
 {
     CompAttributes* CompilationAttributes = Reader(argc, argv);
-    Alice_BigGirl BigGirl;
-    Vector Tokens;
-    New(&Tokens, sizeof(Alice_Token));
-    GirlInit(&BigGirl);
-    Bool Result = ReadPath(CompilationAttributes, &BigGirl);
-    if (!Result) 
-    {
-        return 0;
-    }
-    Tokenize(&BigGirl, &Tokens);
-    Parsenize(&BigGirl, &Tokens);
+    Alice_BigGirl* BigGirl = GirlNew();
+    Bool Result = ReadPath(CompilationAttributes, BigGirl); 
+    if (!Result) return 0;
+    Vector* Tokens = Tokenize(BigGirl);
+    Parsenize(BigGirl, Tokens);
     
     {
 
@@ -27,12 +25,12 @@ Bool ReadAndDecode(int argc, char* argv[])
     **TEMPORARY : ONLY FOR TESTS, REMOVE LATER. 
     */
     String* x = FromStr("");
-    for (int i = 0 ; i < Len(&Tokens) ; i++) 
+    for (int i = 0 ; i < Len(Tokens) ; i++) 
     {
         char p[50];
-        Alice_Token* t = Get(&Tokens, i);
+        Alice_Token* t = (Alice_Token*)Get(Tokens, i);
         String* s = FromStr("");
-        char* c = Substring(BigGirl.SourceCode -> Chars, t -> Start, t-> Start + t -> Length);
+        char* c = Substring(BigGirl -> SourceCode -> Chars, t -> Start, t-> Start + t -> Length);
         if (t -> Type == Tk_Dedent) 
         {
             s = FromStr("<_DEDENT_>");
@@ -67,6 +65,20 @@ Bool ReadAndDecode(int argc, char* argv[])
 int VirtualMain(int argc, char* argv[])
 {
     ReadAndDecode(argc, argv);
+    CodeWritter* W = CWritter("C:\\Users\\Emanuel\\Documents\\GitHub\\alice\\TestCompiler.c");
+    CWriterAppendBlock(W, CLang_Include("stdio.h"));
+    CodeBlock* MB = CLang_Main(CBlock());
+    
+    AliceType* T = malloc(sizeof(AliceType));
+    T -> Kind = f64;
+    CodeLine* VI = CLang_InitVariable("_X", T);
+    CBlockAppend(MB, VI);
+    
+    CWriterAppendBlock(W, MB);
+    CWrite(W);
+    __AliceString* AlStr = __AlStringFrom("This is a string!");
+    __AppendAlString(AlStr, "\nYeah, this is a long text and i'm not thinking in anything so fuck that i'll just write something till i got exhausted of writting!");
+    printf("\n%s", AlStr -> Chars);
     return 0; 
 }
 

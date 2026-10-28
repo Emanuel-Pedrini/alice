@@ -21,11 +21,12 @@ void GirlAppend(Alice_BigGirl* Girl, Alice_CodeObject* CodeObject)
     AddStr(Girl -> SourceCode, '\n');
 }
 
-void GirlInit(Alice_BigGirl* Girl)
+Alice_BigGirl* GirlNew()
 {
-    Vector* TokenVector = malloc(sizeof(Vector));
-    New(TokenVector, sizeof(Alice_CodeObject));
+    Alice_BigGirl* Girl = malloc(sizeof(Alice_BigGirl));
+    VECTOR(TokenVector, Alice_Token)
 
     Girl -> CodeObjects = TokenVector;
     Girl -> SourceCode = FromStr("");
+    return Girl;
 }
