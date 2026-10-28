@@ -51,6 +51,7 @@ __AliceString* __NewAlString();
 __AliceString* __AlStringFrom(const char* __Source);
 __AliceString* __ConcatenateAlString(Usize __Qtd, ...);
 __AliceVoid __AppendAlString(__AliceString* __AlString, const char* __Source);
+__AliceString* __JoinAlString(const char* __Separator, Usize __Qtd, ...);
 
 typedef struct StructAliceType
 {
