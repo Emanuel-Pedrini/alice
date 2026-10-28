@@ -377,7 +377,7 @@ Alice_Token* ReadArchiveMarker(LexerState* AliceState)
 
 Vector* Tokenize(Alice_BigGirl* Girl) 
 {
-	Vec(Tokens, Alice_Token)
+	VECTOR(Tokens, Alice_Token)
     LexerState LocalState;
     LocalState.Char = '_';
     LocalState.Pointer = 0;
@@ -414,6 +414,7 @@ Vector* Tokenize(Alice_BigGirl* Girl)
 
         if (LocalToken != NULL) {
             Offset = LocalToken -> Length;
+            LocalToken -> Line = LocalState.Line;
             Add(Tokens, LocalToken);
         }
         Next(&LocalState, Offset);

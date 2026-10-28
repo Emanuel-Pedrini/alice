@@ -176,6 +176,7 @@ typedef struct {
     char* Literal;
     Usize Start;
     Usize Length;
+    Usize Line;
 } Alice_Token;
 
 #endif

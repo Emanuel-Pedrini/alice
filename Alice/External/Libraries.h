@@ -7,5 +7,6 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <stdint.h>
+#include <stdarg.h>
 
 #endif
