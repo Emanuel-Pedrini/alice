@@ -8,5 +8,5 @@
 #include <ctype.h>
 #include <stdint.h>
 #include <stdarg.h>
-
+#include <math.h>
 #endif

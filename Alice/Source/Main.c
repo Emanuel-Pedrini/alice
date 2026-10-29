@@ -76,15 +76,6 @@ int VirtualMain(int argc, char* argv[])
     
     CWriterAppendBlock(W, MB);
     CWrite(W);
-    __AliceString* AlStr0 = __NewAlString();
-    __AliceString* AlStr1 = __AlStringFrom("This is a string!");
-    __AliceString* AlStr2 = __AlStringFrom("This is a string!");
-    __AliceString* AlStr3 = __AlStringFrom("This is a string!");
-    __AliceString* AlStr4 = __AlStringFrom("This is a string!");
-    __AliceString* AlStr5 = __ConcatenateAlString(4, AlStr1, AlStr2, AlStr3, AlStr4);
-     __AliceString* AlStr6 = __JoinAlString(" ", 4, AlStr1, AlStr2, AlStr3, AlStr4);
-    printf("\n%s", AlStr6 -> Chars);
-    return 0; 
 }
 
 int main(int argc, char* argv[]) 
