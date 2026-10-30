@@ -4,6 +4,7 @@
 #include "Headers/StringUtilities.h"
 #include "External/Libraries.h"
 
+typedef struct Struct__AliceListNode __AliceListNode;
 typedef void __AliceVoid;
 typedef void* __AliceVoidPtr;
 
@@ -66,6 +67,24 @@ __AliceString* __FloatToString(double __N);
 __AliceString* __IntToString(long int __N);
 double __StringToDouble(__AliceString* __AlString);
 long int __StringToInt(__AliceString* __AlString, Usize __Base);
+
+typedef struct Struct__AliceListNode
+{
+    __AliceVoidPtr Element;
+    __AliceListNode* Previous;
+    __AliceListNode* Next;
+} __AliceListNode;
+
+typedef struct Struct__AliceList
+{
+    __AliceListNode* FirstElement;
+    __AliceListNode* LastElement;
+} __AliceList;
+
+__AliceListNode* __NewAlListNode(void* __Element, __AliceListNode* __Previous, __AliceListNode* __Next);
+__AliceListNode* __AlListNodeContaining();
+__AliceList* __NewAlList();
+__AliceVoid __AlListAppend(__AliceList* __List, void* __Element);
 
 typedef struct StructAliceType
 {

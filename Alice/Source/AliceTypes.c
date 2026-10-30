@@ -194,3 +194,41 @@ __AliceVoid __MultiplePushAlVector(__AliceVector* __AlVector, Usize __Qtd, ...)
     }
     va_end(__Arguments);
 }
+
+
+__AliceListNode* __NewAlListNode(void* __Element, __AliceListNode* __Previous, __AliceListNode* __Next)
+{
+    __AliceListNode* __Node = malloc(sizeof(__AliceListNode));
+    __Node -> Element = __Element;
+    __Node -> Next = __Next;
+    __Node -> Previous = __Previous;
+    return __Node;
+}
+
+__AliceListNode* __AlListNodeContaining()
+{
+
+}
+
+__AliceList* __NewAlList()
+{
+    __AliceList* __List = malloc(sizeof(__AliceList));
+    __List -> FirstElement = NULL;
+    __List -> LastElement = NULL;
+    return __List;
+}
+
+__AliceVoid __AlListAppend(__AliceList* __List, void* __Element)
+{
+    __AliceListNode* __Node = __NewAlListNode(__Element, __List -> LastElement, NULL);
+    if (__List -> FirstElement == NULL)
+    {
+        __List -> FirstElement = __Node;
+        __List -> LastElement = __Node;
+    }
+    else 
+    {
+        __List -> LastElement -> Next = __Node;
+     __List -> LastElement = __Node;
+    }
+}

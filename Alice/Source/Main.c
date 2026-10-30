@@ -81,5 +81,12 @@ int VirtualMain(int argc, char* argv[])
 int main(int argc, char* argv[]) 
 {
     VirtualMain(argc, argv);
+    int _x = 12;
+    int _y = 6;
+    int _z = 34;
+    __AliceList* L = __NewAlList();
+    __AlListAppend(L, &_x);
+    __AlListAppend(L, &_y);
+    __AlListAppend(L, &_z);
 }
 
