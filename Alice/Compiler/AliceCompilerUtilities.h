@@ -7,6 +7,7 @@
 #include "Headers/DictionaryUtilities.h"
 #include "Headers/CodeObject.h"
 #include "Headers/ArchiveManager.h"
+#include "Headers/AliceTypes.h"
 
 typedef struct StructCodeLine
 {
@@ -52,4 +53,5 @@ Bool CWrite(CodeWritter* W);
 Bool CWriterAppendBlock(CodeWritter* W, CodeBlock* B);
 Bool CWritterAppendLine(CodeWritter* W, CodeLine* L);
 CodeBlock* CBlockFormatted(const char* Open, const char* Close);
+
 #endif

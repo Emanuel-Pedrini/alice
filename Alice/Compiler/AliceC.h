@@ -10,10 +10,9 @@
 #include "Headers/ArchiveManager.h"
 #include "AliceCompilerUtilities.h"
 
-CodeBlock* CLang_Include(const char* LibName);
-CodeLine* CLang_InitVariable(const char* Name, AliceType* Type);
-CodeLine* CLang_NonInitVariable(const char* Name, AliceType* Type);
-CodeBlock* CLang_Function(const char* Name, Vector* Args, CodeBlock* Body, AliceType* RType);
-CodeBlock* CLang_Main(CodeBlock* Body);
-String* AliceTypeToCType(AliceType* T);
+CodeBlock* CLang_Include(const char* __LibName);
+CodeLine* CLang_InitVariable(const char* __Name, const __AliceType* __Type, CodeBlock* __Block);
+CodeBlock* CLang_Function(const char* __Name, Vector* __Arguments, const __AliceType* __ReturnType);
+CodeBlock* CLang_Main();
+String* AliceTypeToCType(const __AliceType* __Type);
 #endif

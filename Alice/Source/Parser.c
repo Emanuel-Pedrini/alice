@@ -52,7 +52,6 @@ ParserNode* ParseIndentifier(ParserState* AliceState)
     {
         /* Probably the creation of a variable! */
         NEXT
-        
         // Now we expect the variable type.
         // Soon will try to add simple type inference.
 
@@ -75,6 +74,11 @@ ParserNode* ParseIndentifier(ParserState* AliceState)
     {
 
     }
+
+    else if EXPC(Tk_Point)
+    {
+
+    }
 }
 
 ParserNode* ParseOperation(ParserState* AliceState)
@@ -89,12 +93,12 @@ ParserNode* ParserRead(ParserState* AliceState)
     
     switch (A -> Type)
     {
-    case Tk_Indentifier:
-        ParseIndentifier(AliceState);
-        break;
-    default:
-        L = 1;
-        break;
+        case Tk_Indentifier:
+            ParseIndentifier(AliceState);
+            break;
+        default:
+            L = 1;
+            break;
     }
     ParserNext(AliceState, L);
 }

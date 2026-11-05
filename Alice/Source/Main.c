@@ -65,28 +65,23 @@ Bool ReadAndDecode(int argc, char* argv[])
 int VirtualMain(int argc, char* argv[])
 {
     ReadAndDecode(argc, argv);
-    CodeWritter* W = CWritter("C:\\Users\\Emanuel\\Documents\\GitHub\\alice\\TestCompiler.c");
-    CWriterAppendBlock(W, CLang_Include("stdio.h"));
-    CodeBlock* MB = CLang_Main(CBlock());
+
+    CodeWritter* __CLangWritter = CWritter("C:\\Users\\Emanuel\\Documents\\GitHub\\alice\\CompilerExamples\\TestCompiler.c");
+    CWriterAppendBlock(__CLangWritter, CLang_Include("stdio.h"));
+    CWriterAppendBlock(__CLangWritter, CLang_Include("stdint.h"));
+    CWriterAppendBlock(__CLangWritter, CLang_Include("AliceTypes.h"));
+    CodeBlock* __MainBlock = CLang_Main();
     
-    AliceType* T = malloc(sizeof(AliceType));
-    T -> Kind = f64;
-    CodeLine* VI = CLang_InitVariable("_X", T);
-    CBlockAppend(MB, VI);
-    
-    CWriterAppendBlock(W, MB);
-    CWrite(W);
+    CodeLine* __V1 = CLang_InitVariable("__Float32", &__AliceTypePtr_f32, __MainBlock);
+    CodeLine* __V2 = CLang_InitVariable("__Integer8", &__AliceTypePtr_i8, __MainBlock);
+
+    CWriterAppendBlock(__CLangWritter, __MainBlock);
+    CWrite(__CLangWritter);
+    return 0;
 }
 
 int main(int argc, char* argv[]) 
 {
-    VirtualMain(argc, argv);
-    int _x = 12;
-    int _y = 6;
-    int _z = 34;
-    __AliceList* L = __NewAlList();
-    __AlListAppend(L, &_x);
-    __AlListAppend(L, &_y);
-    __AlListAppend(L, &_z);
+    return VirtualMain(argc, argv);
 }
 

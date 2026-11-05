@@ -72,17 +72,17 @@ typedef struct StructParserNode {
         struct StructFunctionArgument 
         {
             String* Name;
-            AliceType Type;
+            __AliceType* Type;
         } FunctionArgument;
         struct StructFunction
         {
             String* Name;
-            AliceType ReturnType;
+            __AliceType* ReturnType;
         } Function;
         struct StructVariable
         {
             String* Name;
-            AliceType Type;
+            __AliceType* Type;
         } Variable;
     } Data;
 } ParserNode;
