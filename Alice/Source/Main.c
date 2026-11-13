@@ -9,6 +9,7 @@
 #include "Compiler/AliceCompilerUtilities.h"
 #include "Compiler/AliceC.h"
 #include "Headers/AliceTypes.h"
+#include "Headers/PrattParsing.h"
 
 Bool ReadAndDecode(int argc, char* argv[])
 {
@@ -65,18 +66,24 @@ Bool ReadAndDecode(int argc, char* argv[])
 int VirtualMain(int argc, char* argv[])
 {
     ReadAndDecode(argc, argv);
+    ExpressionReader* R = NewExpressionReader();
+    Alice_Token* TP1 = CreateToken(Tk_LeftParenthesis, 0, 0, "(");
+    Alice_Token* T1 = CreateToken(Tk_Number, 0, 0, "1");
+    Alice_Token* T2 = CreateToken(Tk_Plus, 0, 0, "^");
+    Alice_Token* T3 = CreateToken(Tk_Number, 0, 0, "2");
+    Alice_Token* TP2 = CreateToken(Tk_RightParenthesis, 0, 0, ")");
+    Alice_Token* T4 = CreateToken(Tk_Asterisk, 0, 0, "^");
+    Alice_Token* T5 = CreateToken(Tk_Number, 0, 0, "3");
+    VECTOR(V, Alice_Token)
+    Add(V, T1);
+    Add(V, T2);
+    Add(V, T3);
+    Add(V, T4);
+    Add(V, T5);
+    R -> ConstExpression = V;
 
-    CodeWritter* __CLangWritter = CWritter("C:\\Users\\Emanuel\\Documents\\GitHub\\alice\\CompilerExamples\\TestCompiler.c");
-    CWriterAppendBlock(__CLangWritter, CLang_Include("stdio.h"));
-    CWriterAppendBlock(__CLangWritter, CLang_Include("stdint.h"));
-    CWriterAppendBlock(__CLangWritter, CLang_Include("AliceTypes.h"));
-    CodeBlock* __MainBlock = CLang_Main();
-    
-    CodeLine* __V1 = CLang_InitVariable("__Float32", &__AliceTypePtr_f32, __MainBlock);
-    CodeLine* __V2 = CLang_InitVariable("__Integer8", &__AliceTypePtr_i8, __MainBlock);
-
-    CWriterAppendBlock(__CLangWritter, __MainBlock);
-    CWrite(__CLangWritter);
+    Expression* Exp = ParseExpression(R, 0);
+    printf("\n%s", Exp -> ConversionToString(Exp) -> Chars);
     return 0;
 }
 

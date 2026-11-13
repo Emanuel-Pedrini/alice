@@ -146,6 +146,15 @@ __AliceVector* __AlVectorWithCapacity(Usize __ElementSize, Usize __Capacity)
     __AlVector -> VCapacity = __Capacity;
     return __AlVector;
 }
+__AliceVector* __TypedAlVector(__AliceType* __Type)
+{
+    __AliceVector* __AlVector = malloc(sizeof(__AliceVector));
+    __AlVector -> VElements = NULL;
+    __AlVector -> ESize = __Type -> Size;
+    __AlVector -> VSize = 0;
+    __AlVector -> VCapacity = 0;
+    return __AlVector;
+}
 
 __AliceVoid __ResizeAlVector(__AliceVector* __AlVector, Usize __NewSize)
 {

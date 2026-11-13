@@ -179,4 +179,11 @@ typedef struct {
     Usize Line;
 } Alice_Token;
 
+Alice_Token* CreateToken(
+    Alice_TokenType Type,
+    Usize Start,
+    Usize Length,
+    char* Literal
+);
+
 #endif

@@ -3,9 +3,9 @@
 
 #define NODE(N) ParserNode* N = malloc(sizeof(ParserNode));
 #define EXPC(T) (ParserExpect(AliceState, T, 0))
-#define CONSUME(T) if (ParserExpect(AliceState, T, 0)) ParserNext(AliceState, 0);
+#define CONSUME(T) if (ParserExpect(AliceState, T, 0)) ParserNext(AliceState, 1);
 #define SAVE(V) Alice_Token* V = ParserActual(AliceState);
-#define SNEXT(V) Alice_Token* V = ParserActual(AliceState);ParserNext(AliceState, 0);
+#define SNEXT(V) Alice_Token* V = ParserActual(AliceState);ParserNext(AliceState, 1);
 #define NEXT ParserNext(AliceState, 1);
 
 void ParserSet(ParserState* AliceState, Usize SetValue) 
@@ -43,30 +43,30 @@ ParserNode* ParseType(ParserState* AliceState)
 
 }
 
+ParserNode* ParsePrefix(ParserState* AliceState)
+{
+    NODE(N)
+    return N;
+}
+
+
 ParserNode* ParseIndentifier(ParserState* AliceState)
 {
     NODE(N)
-    Alice_Token* NameIndentifier = ParserActual(AliceState);
-    ParserNext(AliceState, 1);
+    SNEXT(NameIdentifier)
     if EXPC(Tk_Colon)
     {
-        /* Probably the creation of a variable! */
         NEXT
-        // Now we expect the variable type.
-        // Soon will try to add simple type inference.
-
         if EXPC(Tk_Indentifier)
         {
             SNEXT(TypeIdentifier)
         }
         else if EXPC(Tk_Equal)
         {
-            /* A value attribution! */
             NEXT
         }
         else 
         {
-            /* Only variable declaration! */
             NEXT
         }
     }

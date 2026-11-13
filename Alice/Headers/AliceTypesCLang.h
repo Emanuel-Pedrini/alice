@@ -32,7 +32,7 @@ typedef enum EnumAliceTypeKind
 
 typedef struct Struct__AliceRefCounted
 {
-
+    Bool AlreadyFree;
 } __AliceRefCounted;
 
 typedef struct Struct__AliceVector
@@ -41,10 +41,12 @@ typedef struct Struct__AliceVector
     Usize VSize;
     Usize VCapacity;
     Usize ESize;
+    __AliceRefCounted* RefCount;
 } __AliceVector;
 
 __AliceVector* __NewAlVector(Usize __ElementSize);
 __AliceVector* __AlVectorWithCapacity(Usize __ElementSize, Usize __Capacity);
+__AliceVector* __TypedAlVector(__AliceType* __Type);
 __AliceVoid __ResizeAlVector(__AliceVector* __AlVector, Usize __NewSize);
 __AliceVoid __PushAlVector(__AliceVector* __AlVector, __AliceVoidPtr __Element);
 __AliceVoid __MultiplePushAlVector(__AliceVector* __AlVector, Usize __Qtd, ...);
@@ -58,6 +60,7 @@ typedef struct Struct__AliceString
     char* Chars;
     Usize SSize;
     Usize SCapacity;
+    __AliceRefCounted* RefCount;
 } __AliceString;
 
 __AliceString* __NewAlString();
@@ -77,12 +80,14 @@ typedef struct Struct__AliceListNode
     __AliceVoidPtr Element;
     __AliceListNode* Previous;
     __AliceListNode* Next;
+    __AliceRefCounted* RefCount;
 } __AliceListNode;
 
 typedef struct Struct__AliceList
 {
     __AliceListNode* FirstElement;
     __AliceListNode* LastElement;
+    __AliceRefCounted* RefCount;
 } __AliceList;
 
 __AliceListNode* __NewAlListNode(void* __Element, const __AliceType* __Type, __AliceListNode* __Previous, __AliceListNode* __Next);
