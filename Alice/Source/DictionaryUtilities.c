@@ -46,8 +46,8 @@ void* GetKeyV(Dictionary* Dict, const char* Key)
     String* A = FromStr(Key);
     for (int i = 0 ; i < Dict -> Keys -> size; i++)
     {
-        String* B = Get(Dict -> Keys, i);
-        void* C = Get(Dict -> Values, i);
+        String* B = GetByIndexVector(Dict -> Keys, i);
+        void* C = GetByIndexVector(Dict -> Values, i);
         if (CompStr(A, B))
         {
             return C;
@@ -74,7 +74,7 @@ Bool Has(Table* Tab, const char* Value)
     String* A = FromStr(Value);
     for (int i = 0 ; i < Tab -> Values -> size ; i++)
     {
-        String* B = Get(Tab -> Values, i);
+        String* B = GetByIndexVector(Tab -> Values, i);
         if (CompStr(A, B))
         {
             return True;

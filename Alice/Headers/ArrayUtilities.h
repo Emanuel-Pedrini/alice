@@ -11,7 +11,7 @@ typedef struct {
 
 void Add(Vector* Vector, const void* Element);
 void New(Vector* Vector, Usize ElementSize);
-void* Get(Vector* Vector, Usize Index);
+void* GetByIndexVector(Vector* Vector, Usize Index);
 void Free(Vector* Vector);
 Usize Len(Vector* Vector);
 

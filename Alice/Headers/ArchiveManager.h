@@ -5,7 +5,7 @@
 #include "Headers/CodeObject.h"
 
 char* OpenFile(char* ArchivePath, Usize Capacity);
-Alice_CodeObject* OpenAliceFile(char* ArchivePath);
+AliceCodeObject* OpenAliceFile(char* ArchivePath);
 int FileWrite(char* Path, const char* Content, const char* Mode);
 int BinaryWrite(char* Path, unsigned int Content);
 

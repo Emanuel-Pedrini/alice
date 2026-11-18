@@ -235,7 +235,7 @@ void ReplaceStr(String* Str, const char* Char, const char* Replace)
     Usize MatchIdx = 0;
     while (x < Str -> Size) {
         while (MatchIdx < Matches) {
-            Usize* s = Get(Indexs, MatchIdx * 2);
+            Usize* s = GetByIndexVector(Indexs, MatchIdx * 2);
             if (*s < x) {
                 MatchIdx++;
                 continue;
@@ -243,8 +243,8 @@ void ReplaceStr(String* Str, const char* Char, const char* Replace)
             break;
         }
         if (MatchIdx < Matches) {
-            Usize* s = Get(Indexs, MatchIdx * 2);
-            Usize* e = Get(Indexs, MatchIdx * 2 + 1);
+            Usize* s = GetByIndexVector(Indexs, MatchIdx * 2);
+            Usize* e = GetByIndexVector(Indexs, MatchIdx * 2 + 1);
             if (x == *s) {
                 AppendStr(Result, (char*)Replace);
                 x = *e;
@@ -266,8 +266,8 @@ void ReplaceEquallyStr(String* Str, const char* Char, const char* Replace)
 {
     Vector* Indexs = FindStr(Str, Char);
     for (Usize x = 0; x < Len(Indexs); x+=2) {
-        Usize* s = Get(Indexs, x);
-        Usize* e = Get(Indexs, x + 1);
+        Usize* s = GetByIndexVector(Indexs, x);
+        Usize* e = GetByIndexVector(Indexs, x + 1);
         Usize w = 0;
         for (int z = *s ; z != *e; z++) {
             PutsStr(Str, Replace[w], z);

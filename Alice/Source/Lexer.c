@@ -7,7 +7,25 @@
 #define IfKeyword(KEYWORD, TOKEN) if (IsCaseEqual(Word, KEYWORD)) {return TOKEN;}
 #define Keyword(KEYWORD, TOKEN) else if (IsCaseEqual(Word, KEYWORD)) {return TOKEN;}
 
-char ActualChar(LexerState* AliceState) {
+IndentationHandler* NewIndentationHandler()
+{
+    IndentationHandler* IndHandler = malloc(sizeof(IndentationHandler));
+    VECTOR(V, Usize)
+    IndHandler -> IndentationHistory = V;
+    IndHandler -> ActualIndentation = 0;
+    IndHandler -> LastIndentation = 0;
+    return IndHandler; 
+}
+
+Usize IndentationChanged(IndentationHandler* IndHandler)
+{
+    if (IndHandler -> LastIndentation == IndHandler -> ActualIndentation) return 0;
+    if (IndHandler -> LastIndentation < IndHandler -> ActualIndentation) return 1;
+    if (IndHandler -> LastIndentation > IndHandler -> ActualIndentation) return -1;
+}
+
+
+char CurrentCharAliceState(LexerState* AliceState) {
     return AliceState -> Code -> Chars[AliceState -> Pointer];
 }
 
@@ -15,19 +33,28 @@ char Peek(LexerState* AliceState, int Offset) {
     return AliceState -> Code -> Chars[AliceState -> Pointer + Offset];
 }
 
-Alice_Token* CreateToken(
-    Alice_TokenType Type,
+AliceToken* NewAliceToken(
+    AliceTokenType Type,
     Usize Start,
     Usize Length,
     char* Literal
 ) 
 {
-    Alice_Token* Buffer = malloc(sizeof(Alice_Token));
+    AliceToken* Buffer = malloc(sizeof(AliceToken));
     Buffer -> Type = Type;
     Buffer -> Start = Start;
     Buffer -> Length = Length;
     Buffer -> Literal = Literal;
+    Buffer -> ConversionToString = ConversionToString__AliceToken;
     return Buffer;
+}
+
+String* ConversionToString__AliceToken(AliceToken* InQ)
+{
+    String* S =  FromStr("");
+    AppendStr(S, FromStr(InQ -> Literal) -> Chars);
+    AppendStr(S, "");
+    return S;
 }
 
 void Next(LexerState* AliceState, int Offset) {
@@ -39,37 +66,98 @@ void Next(LexerState* AliceState, int Offset) {
 	AliceState -> Pointer = NextPointer;
 }
 
-void Skip(LexerState* AliceState) {
+Bool IsOneLineCommentaryAliceState(LexerState* AliceState)
+{
+    if (CurrentCharAliceState(AliceState) == '/' && Peek(AliceState, 1) == '/')
+    {
+        return True;
+    }
+    return False;
+}
+
+Usize CountIndentationAliceState(LexerState* AliceState)
+{
+    Usize SpaceCount = 0;
+    while (CurrentCharAliceState(AliceState) == ' ')
+    {
+        SpaceCount++;
+        Next(AliceState, 1);
+    }
+    if (IsOneLineCommentaryAliceState(AliceState))
+    {
+        return AliceState -> IndHandler -> ActualIndentation;
+    }
+    return SpaceCount;
+}
+
+void HandleLineAliceState(LexerState* AliceState)
+{
+    char LastCharacter = Peek(AliceState, -1);
+    
+    AliceState -> Line++;
+    Next(AliceState, 1);
+    Usize* IndentationCount = malloc(sizeof(Usize));
+    *IndentationCount = CountIndentationAliceState(AliceState);
+    AliceState -> IndHandler -> LastIndentation = AliceState -> IndHandler -> ActualIndentation;
+    AliceState -> IndHandler -> ActualIndentation = *IndentationCount;
+    Add(AliceState -> IndHandler -> IndentationHistory, IndentationCount);
+
+    Usize IndentationChange = IndentationChanged(AliceState -> IndHandler);
+    if (IndentationChange)
+    {
+        AliceToken* T;
+        switch (IndentationChange)
+        {
+        case 1:
+            T = NewAliceToken(Tk_Indent, 0, 0, "Indent");
+            Add(AliceState -> Tokens, T);
+            break;
+        case -1:
+            T = NewAliceToken(Tk_Dedent, 0, 0, "Dedent");
+            Add(AliceState -> Tokens, T);
+            break;
+        default:
+            break;
+        }
+    }
+}
+
+void HandleNonStandardAliceState(LexerState* AliceState) {
     while (1) 
     {
-        if (ActualChar(AliceState) == '/' && Peek(AliceState, 1) == '/') 
+        if (IsOneLineCommentaryAliceState(AliceState))
         {
-            while (ActualChar(AliceState) != '\n' 
-                    && !IsInvalid(ActualChar(AliceState))) {
-                if (ActualChar(AliceState) == '\n') 
-                {
-                    AliceState -> Line++;
-                }
+            while (CurrentCharAliceState(AliceState) != '\n' && !IsInvalid(CurrentCharAliceState(AliceState))) 
+            {
                 Next(AliceState, 1);
             }
+            HandleLineAliceState(AliceState);
+            continue;
         }
 
-        if ((ActualChar(AliceState) == '/' && Peek(AliceState, 1) == '*') && !IsInvalid(ActualChar(AliceState))) 
+        if ((CurrentCharAliceState(AliceState) == '/' && Peek(AliceState, 1) == '*') && !IsInvalid(CurrentCharAliceState(AliceState))) 
         {
-            while (!(ActualChar(AliceState) == '*' && Peek(AliceState, 1) == '/')) {
-                if (ActualChar(AliceState) == '\n') 
-                {
-                    AliceState -> Line++;
-                }
+            while (!(CurrentCharAliceState(AliceState) == '*' && Peek(AliceState, 1) == '/')) {                
                 Next(AliceState, 1);
             }
             Next(AliceState, 2);
+            continue;
         }
 
-        if ((ActualChar(AliceState) == ' ' || ActualChar(AliceState) == '\n') && !IsInvalid(ActualChar(AliceState))) 
-        {
+        if ((CurrentCharAliceState(AliceState) == ' ') && !IsInvalid(CurrentCharAliceState(AliceState))) 
+        { 
             Next(AliceState, 1);
+            continue;
+        }
+
+        if (CurrentCharAliceState(AliceState) == '\n' && !IsInvalid(CurrentCharAliceState(AliceState)))
+        {
+            AliceToken* T = NewAliceToken(Tk_NewLine, 0, 0, "");
+            Add(AliceState -> Tokens, T);
+            HandleLineAliceState(AliceState);
+            continue;
         } 
+
         else 
         {
             break;
@@ -85,13 +173,13 @@ void Set(LexerState* AliceState, Usize SetValue)
     }
 }
 
-Alice_Token* ReadSpecial(LexerState* AliceState) 
+AliceToken* HandleSymbolAliceState(LexerState* AliceState) 
 {
-    Alice_TokenType Type = Tk_Illegal;
+    AliceTokenType Type = Tk_Illegal;
     Usize Start = AliceState -> Pointer;
     Usize Length = 1;
 
-    switch (ActualChar(AliceState)) {
+    switch (CurrentCharAliceState(AliceState)) {
         case '@':
             Type = Tk_Adress;
             break;
@@ -270,10 +358,11 @@ Alice_Token* ReadSpecial(LexerState* AliceState)
             Type = Tk_Illegal;
             break;
     }
-    return CreateToken(Type, Start, Length, "");
+    char* Word =  Substring(AliceState -> Code -> Chars, Start, (Start + Length));
+    return NewAliceToken(Type, Start, Length, Word);
 }
 
-Alice_TokenType Indentify(const char* Word) 
+AliceTokenType HandleFreewordAliceState(const char* Word) 
 {
 	IfKeyword(RETURN_KEYWORD, Tk_Return)
 	Keyword(DO_KEYWORD, Tk_Do)
@@ -312,20 +401,20 @@ Alice_TokenType Indentify(const char* Word)
     else {return Tk_Indentifier;}
 }
 
-Alice_Token* ReadIndentifier(LexerState* AliceState) 
+AliceToken* ReadIndentifier(LexerState* AliceState) 
 {
     int Length = 0;
     Usize Start = AliceState -> Pointer;
-    while (IsIndentifierChar(AliceState -> Code -> Chars[Start + Length]) && !IsInvalid(ActualChar(AliceState))) 
+    while (IsIndentifierChar(AliceState -> Code -> Chars[Start + Length]) && !IsInvalid(CurrentCharAliceState(AliceState))) 
     {
         Length++;
     }
     char* Word =  Substring(AliceState -> Code -> Chars, Start, (Start + Length));
-    Alice_TokenType Type = Indentify(Word);
-    return CreateToken(Type, Start, Length, Word);
+    AliceTokenType Type = HandleFreewordAliceState(Word);
+    return NewAliceToken(Type, Start, Length, Word);
 }
 
-Alice_Token* ReadString(LexerState* AliceState)
+AliceToken* ReadString(LexerState* AliceState)
 {
     Next(AliceState, 1);
     int Length = 0;
@@ -343,22 +432,22 @@ Alice_Token* ReadString(LexerState* AliceState)
     char* Word =  Substring(AliceState -> Code -> Chars, Start, (Start + Length));
 
     Next(AliceState, 1);
-    return CreateToken(Tk_String, Start, Length, Word);
+    return NewAliceToken(Tk_String, Start, Length, Word);
 }
 
-Alice_Token* ReadNumerical(LexerState* AliceState) 
+AliceToken* ReadNumerical(LexerState* AliceState) 
 {
     int Length = 0;
     Usize Start = AliceState -> Pointer;
-    while (IsValidNumerical(AliceState -> Code -> Chars[Start + Length]) && !IsInvalid(ActualChar(AliceState))) 
+    while (IsValidNumerical(AliceState -> Code -> Chars[Start + Length]) && !IsInvalid(CurrentCharAliceState(AliceState))) 
     {
         Length++;
     }
     char* Word =  Substring(AliceState -> Code -> Chars, Start, (Start + Length));
-    return CreateToken(Tk_Decimal, Start, Length, Word);
+    return NewAliceToken(Tk_Decimal, Start, Length, Word);
 }
 
-Alice_Token* ReadArchiveMarker(LexerState* AliceState)
+AliceToken* ReadArchiveMarker(LexerState* AliceState)
 {
     Next(AliceState, 1);
     int Length = 0;
@@ -369,45 +458,52 @@ Alice_Token* ReadArchiveMarker(LexerState* AliceState)
     {
         Length++;
     }
+    
+    AliceState -> Line = 1;
+    
     char* Word =  Substring(AliceState -> Code -> Chars, Start, (Start + Length));
     Next(AliceState, 1);
-    return CreateToken(Tk_ArchiveMarker, Start, Length, Word);
-    AliceState -> Line = 1;
+
+    return NewAliceToken(Tk_ArchiveMarker, Start, Length, Word);
 }
 
-Vector* Tokenize(Alice_BigGirl* Girl) 
+Vector* AliceLexerTokenize(String* SourceCode) 
 {
-	VECTOR(Tokens, Alice_Token)
+	VECTOR(Tokens, AliceToken)
     LexerState LocalState;
     LocalState.Char = '_';
     LocalState.Pointer = 0;
     LocalState.Line = 1;
+    LocalState.Code = SourceCode;
+    LocalState.Tokens = Tokens;
+    LocalState.IndHandler = NewIndentationHandler();
 
-    LocalState.Code = Girl -> SourceCode;
-    for (int x = 0; ActualChar(&LocalState) != '\0';x++) {
-        Skip(&LocalState);
-		if (IsInvalid(ActualChar(&LocalState))) break;
+    for (int x = 0; CurrentCharAliceState(&LocalState) != '\0';x++) 
+    {
+        HandleNonStandardAliceState(&LocalState);
+		
+        if (IsInvalid(CurrentCharAliceState(&LocalState))) break;
 
         Usize Offset = 1;
-        Alice_Token* LocalToken = NULL;
+        AliceToken* LocalToken = NULL;
 
-        if (ActualChar(&LocalState) == ARCHIVE_MARKER) 
+        if (CurrentCharAliceState(&LocalState) == ARCHIVE_MARKER) 
         {
             LocalToken = ReadArchiveMarker(&LocalState);
         }
-        else if (ActualChar(&LocalState) == STRING_MARKER) 
+        else if (CurrentCharAliceState(&LocalState) == STRING_MARKER) 
         {
             LocalToken = ReadString(&LocalState);
         }
-        else if (!IsIndentifierChar(ActualChar(&LocalState))) 
+        else if (!IsIndentifierChar(CurrentCharAliceState(&LocalState))) 
         {
-            LocalToken = ReadSpecial(&LocalState);
+            LocalToken = HandleSymbolAliceState(&LocalState);
         }
-        else if (IsNumerical(ActualChar(&LocalState))) 
+        else if (IsNumerical(CurrentCharAliceState(&LocalState))) 
         {
             LocalToken = ReadNumerical(&LocalState);
         }
-        else if (IsIndentifierChar(ActualChar(&LocalState)))
+        else if (IsIndentifierChar(CurrentCharAliceState(&LocalState)))
         {
             LocalToken = ReadIndentifier(&LocalState);
         }
@@ -415,11 +511,11 @@ Vector* Tokenize(Alice_BigGirl* Girl)
         if (LocalToken != NULL) {
             Offset = LocalToken -> Length;
             LocalToken -> Line = LocalState.Line;
-            Add(Tokens, LocalToken);
+            Add(LocalState.Tokens, LocalToken);
         }
         Next(&LocalState, Offset);
     }
-    Alice_Token END_TOKEN = {Tk_EndOfCode, "__END_OF_CODE__", LocalState.Pointer, 0};
-    Add(Tokens, &END_TOKEN);
+    AliceToken* END_TOKEN = NewAliceToken(Tk_EndOfCode, LocalState.Pointer, 0, "__END_OF_CODE__");
+    Add(Tokens, END_TOKEN);
 	return Tokens;
 }

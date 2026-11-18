@@ -41,9 +41,9 @@ char* OpenFileNWindows(char* ArchivePath, Usize Capacity) {
     return totalBuffer;
 }
 
-Alice_CodeObject* OpenAliceFile(char* ArchivePath) 
+AliceCodeObject* OpenAliceFile(char* ArchivePath) 
 {
-    Alice_CodeObject* NewCodeObject = malloc(sizeof(Alice_CodeObject));
+    AliceCodeObject* NewCodeObject = malloc(sizeof(AliceCodeObject));
     char* Code = OpenFileNWindows(ArchivePath, 1024);
     if (Code == NULL) {
         printf(">> ERROR : Could not find '%s'!\n", ArchivePath);

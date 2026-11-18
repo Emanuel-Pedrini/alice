@@ -8,15 +8,15 @@ typedef struct {
     char* Code;
     char* Path;
     char* Name;
-} Alice_CodeObject;
+} AliceCodeObject;
 
 typedef struct {
     Vector* CodeObjects;
     String* SourceCode;
     String* OutputPath;
-} Alice_BigGirl;
+} AliceManagementObject;
 
-void GirlAppend(Alice_BigGirl* Girl, Alice_CodeObject* CodeObject);
-Alice_BigGirl* GirlNew();
+void GirlAppend(AliceManagementObject* Girl, AliceCodeObject* CodeObject);
+AliceManagementObject* NewAliceManagementObject();
 
 #endif

@@ -2,7 +2,7 @@
 
 #define BASE_EXPRESSION_VALUE ((Usize)10)
 
-Expression* NewExpression(ExpressionType Type, POperand ConstOperand)
+Expression* NewExpression(ExpressionType Type, OperandValue ConstOperand)
 {
     Expression* ExpressionN = malloc(sizeof(Expression));
     ExpressionN -> Type = Type;
@@ -11,7 +11,7 @@ Expression* NewExpression(ExpressionType Type, POperand ConstOperand)
     return ExpressionN;
 }
 
-UnaryOperator* NewUnaryOperator(Alice_Token* Operator, Expression* Operand)
+UnaryOperator* NewUnaryOperator(AliceToken* Operator, Expression* Operand)
 {
     UnaryOperator* UnaryOp = malloc(sizeof(UnaryOperator));
     UnaryOp -> Operand = Operand;
@@ -20,7 +20,7 @@ UnaryOperator* NewUnaryOperator(Alice_Token* Operator, Expression* Operand)
     return UnaryOp;
 }
 
-BinaryOperator* NewBinaryOperator(Alice_Token* Operator, Expression* Left, Expression* Right)
+BinaryOperator* NewBinaryOperator(AliceToken* Operator, Expression* Left, Expression* Right)
 {
     BinaryOperator* BinaryOp = malloc(sizeof(BinaryOperator));
     BinaryOp -> Left = Left;
@@ -34,7 +34,7 @@ BinaryOperator* NewBinaryOperator(Alice_Token* Operator, Expression* Left, Expre
 ExpressionReader* NewExpressionReader()
 {
     ExpressionReader* ExpressionR = malloc(sizeof(ExpressionReader));
-    VECTOR(V, Alice_Token);
+    VECTOR(V, AliceToken);
     ExpressionR -> ConstExpression = V; 
     ExpressionR -> Pointer = (Usize) 0;
     return ExpressionR;
@@ -45,27 +45,27 @@ String* ConversionToString__BinaryOperator(BinaryOperator* InQ)
     Expression* LeftExpr = InQ -> Left;
     Expression* RightExpr = InQ -> Right;
 
-    String* S = FromStr("Binary <( ");
-    AppendStr(S, ConversionToString__AliceToken(InQ -> Operator) -> Chars);
+    String* S = FromStr("Binary( ");
+    AppendStr(S, (InQ -> Operator) -> ConversionToString(InQ -> Operator) -> Chars);
     AppendStr(S, " , ");
     String* LSE = LeftExpr -> ConversionToString(LeftExpr);
     String* RSE = RightExpr -> ConversionToString(RightExpr);
     AppendStr(S, LSE -> Chars);
     AppendStr(S, " , ");
     AppendStr(S, RSE -> Chars);
-    AppendStr(S, " )>");
+    AppendStr(S, " )");
     return S;
 }
 
 String* ConversionToString__UnaryOperator(UnaryOperator* InQ)
 {
     Expression* Expr = InQ -> Operand;
-    String* S = FromStr("Unary <( ");
-    AppendStr(S, ConversionToString__AliceToken(InQ -> Operator) -> Chars);
-    AppendStr(S, ", ");
+    String* S = FromStr("Unary( ");
+    AppendStr(S, (InQ -> Operator) -> ConversionToString(InQ -> Operator) -> Chars);
+    AppendStr(S, " , ");
     String* SE = Expr -> ConversionToString(Expr);
     AppendStr(S, SE -> Chars);
-    AppendStr(S, " )>");
+    AppendStr(S, " )");
     return S;
 }
 
@@ -94,78 +94,68 @@ String* ConversionToString__Expression(Expression* InQ)
     }
 }
 
-String* ConversionToString__AliceToken(Alice_Token* InQ)
-{
-    return FromStr(InQ -> Literal);
-}
-
 void NextExpressionReader(ExpressionReader* Reader)
 {
     Reader -> Pointer ++;
 }
 
-Alice_Token* CurrentExpressionReader(ExpressionReader* Reader)
+AliceToken* CurrentExpressionReader(ExpressionReader* Reader)
 {
-    return (Alice_Token*)Get(Reader -> ConstExpression, Reader -> Pointer);
+    return (AliceToken*)GetByIndexVector(Reader -> ConstExpression, Reader -> Pointer);
 }
 
-Alice_Token* ConsumeExpressionReader(ExpressionReader* Reader)
+AliceToken* ConsumeExpressionReader(ExpressionReader* Reader)
 {
-    Alice_Token* T = CurrentExpressionReader(Reader);
+    AliceToken* T = CurrentExpressionReader(Reader);
     NextExpressionReader(Reader);
     return T;
 }
 
-Alice_Token* PeekExpressionReader(ExpressionReader* Reader, int Offset)
+AliceToken* PeekExpressionReader(ExpressionReader* Reader, int Offset)
 {
     Usize Index = Reader -> Pointer + Offset;
     if (Index >= Reader -> ConstExpression -> size)
     {
         return NULL;
     }
-    return (Alice_Token*)Get(Reader -> ConstExpression, Index);
+    return (AliceToken*)GetByIndexVector(Reader -> ConstExpression, Index);
 }
 
-Usize BindingPower(const Alice_TokenType Operator)
+#define BindingOperator(T, P) case T: return BASE_EXPRESSION_VALUE * P;
+Usize BindingPower(const AliceTokenType Operator)
 {
     switch (Operator)
     {
-        case Tk_Minus:
-            return BASE_EXPRESSION_VALUE * 1;
-        case Tk_Plus:
-            return BASE_EXPRESSION_VALUE * 1;
-        case Tk_Asterisk:
-            return BASE_EXPRESSION_VALUE * 2;
-        case Tk_Div:
-            return BASE_EXPRESSION_VALUE * 2;
-        case Tk_LeftParenthesis:
-            return BASE_EXPRESSION_VALUE * 0;
-        case Tk_RightParenthesis:
-            return BASE_EXPRESSION_VALUE * 0;
-        case Tk_UpArrow:
-            return BASE_EXPRESSION_VALUE * 4;
-        default:
-            return BASE_EXPRESSION_VALUE * 0;
+        BindingOperator(Tk_LeftParenthesis, 0)
+        BindingOperator(Tk_RightParenthesis, 0)
+        BindingOperator(Tk_Minus, 1)
+        BindingOperator(Tk_Plus, 1)
+        BindingOperator(Tk_Asterisk, 2)
+        BindingOperator(Tk_Div, 2)
+        BindingOperator(Tk_Percentage, 2)
+        BindingOperator(Tk_UpArrow, 4)
+        default: return BASE_EXPRESSION_VALUE * 0;
     }
 }
-Bool CanBeUnary(const Alice_TokenType Operator)
+
+#define UnaryOperator(T) case T: return True;
+Bool CanBeUnary(const AliceTokenType Operator)
 {
     switch (Operator)
     {
-        case Tk_Minus:
-            return True;
-        default:
-            return False;
+        UnaryOperator(Tk_Minus)
+        UnaryOperator(Tk_Plus)
+        default: return False;
     }   
 }
 
-Expression* NullDenotation(ExpressionReader* Reader, Alice_Token* Left)
+Expression* NullDenotation(ExpressionReader* Reader, AliceToken* Left)
 {
-    Alice_TokenType T = Left -> Type;
+    AliceTokenType T = Left -> Type;
     if (CanBeUnary(T))
     {
         Expression* ParsedExpression = ParseExpression(Reader, BindingPower(T));
-        POperand P;
+        OperandValue P;
         UnaryOperator* UnOp = NewUnaryOperator(Left, ParsedExpression);
         P.Unary = UnOp;
         return NewExpression(UNARY, P);
@@ -173,14 +163,14 @@ Expression* NullDenotation(ExpressionReader* Reader, Alice_Token* Left)
     else if (T == Tk_LeftParenthesis)
     {
         Expression* ParsedExpression = ParseExpression(Reader, BindingPower(T));
-        Alice_Token* NextToken = ConsumeExpressionReader(Reader);
+        AliceToken* NextToken = ConsumeExpressionReader(Reader);
         if (NextToken -> Type == Tk_RightParenthesis)
         {
             return ParsedExpression;
         }
         return NULL;
     }
-    POperand P;
+    OperandValue P;
     P.Literal = Left;
     return NewExpression(LITERAL, P);
 }
@@ -197,7 +187,7 @@ Expression* LeftDenotation(ExpressionReader* Reader, Expression* Left, Expressio
             ) - 1
         )
     );
-    POperand P;
+    OperandValue P;
     P.Binary = BinOp;
     return NewExpression(BINARY, P);
 }
@@ -208,10 +198,10 @@ Expression* ParseExpression(ExpressionReader* Reader, Usize RightBindingPower)
         Reader, 
         ConsumeExpressionReader(Reader)
     );
-    Alice_Token* Next = PeekExpressionReader(Reader, 0);
+    AliceToken* Next = PeekExpressionReader(Reader, 0);
     while (Next != NULL && BindingPower(Next -> Type) > RightBindingPower)
     {
-        POperand P;
+        OperandValue P;
         P.Literal = ConsumeExpressionReader(Reader);
         Expression* Expr = NewExpression(LITERAL, P);
         LeftExpression = LeftDenotation(

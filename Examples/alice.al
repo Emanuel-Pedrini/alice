@@ -1,8 +1,16 @@
-y : i32 = 8
-x : i32 = 68 * ( ( -7 - 90 ) / ( 5 + y ) )
+fn main() i32:
+    a : i32 = 89
+    b : i32 = 68*((-7-90)/(5+a))
+    c : i32 = 6478
+    d : Array<i32, 3> = Array.new(a, b, c)
+    j : Vector<String> = Vector.new()
+    k : i16 = j.RemoveLast()
+    &MyObject Object = MyObject.new()
+    Object!
 
-( * C ( / ( - C C ) ( + C V ) ) )
-( * 68 ( / ( - -7 90 ) ( + 5 y ) ) )
+struct MyObject:
+    fn static new() &MyObject:
+        &MyObject Fobj = MemoryAlloc(MyObject)
+        return Fobj
 
 
-BinOp( MUL, 68, BinOp( DIVISION, BinOp( MINUS, UnaryOp(NEG, 7), 90 ), BinOp( PLUS, 5, Var(y) ) ) )

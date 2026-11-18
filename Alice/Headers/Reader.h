@@ -17,8 +17,8 @@ typedef struct StructCompAttributes {
     char* TargetArchive;
 } CompAttributes;
 
-CompAttributes* Reader(int NumberOfArguments, char** Arguments);
+CompAttributes* ReadCompilationAttributes(int NumberOfArguments, char** Arguments);
 void ReadCallArgument(CompAttributes* Attributes, char* Argument);
-Bool ReadPath(CompAttributes* CompilationAttributes, Alice_BigGirl* BigGirl);
+Bool ReadCompilationPaths(CompAttributes* CompilationAttributes, AliceManagementObject* BigGirl);
 
 #endif

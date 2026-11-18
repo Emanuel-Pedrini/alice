@@ -43,7 +43,7 @@ Bool CWriteBlock(CodeWritter* W, CodeBlock* B)
 {
     for (int I = 0 ; I < B -> CodeLines -> size ; I++)
     {
-        CWriteLine(W, Get(B -> CodeLines, I));
+        CWriteLine(W, GetByIndexVector(B -> CodeLines, I));
     }
 }
 
@@ -52,7 +52,7 @@ Bool CWrite(CodeWritter* W)
     String* S = FromStr("");
     for (int I = 0 ; I < W -> WriteContent -> size; I++)
     {
-        CodeLine* L = (CodeLine*)Get(W -> WriteContent, I);
+        CodeLine* L = (CodeLine*)GetByIndexVector(W -> WriteContent, I);
         AppendStr(S, L -> Content -> Chars);
     }
     int R = FileWrite(SPTR(W -> TargetPath), S -> Chars, "w");
@@ -74,7 +74,7 @@ Bool CWriterAppendBlock(CodeWritter* W, CodeBlock* B)
     if (B -> HasFormat) CWritterAppendLine(W, CLine(B -> S -> Content -> Chars));   
     for (int I = 0 ; I < B -> CodeLines -> size ; I++)
     {
-        CodeLine* L = ((CodeLine*)Get(B -> CodeLines, I));
+        CodeLine* L = ((CodeLine*)GetByIndexVector(B -> CodeLines, I));
         CWritterAppendLine(W, L);
     }
     if (B -> HasFormat) CWritterAppendLine(W, CLine(B -> E -> Content -> Chars)); 

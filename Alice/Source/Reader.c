@@ -6,7 +6,7 @@
 #include "Headers/Reader.h"
 #include "Headers/Lexer.h"
 
-CompAttributes* Reader(int NumberOfArguments, char** Arguments) 
+CompAttributes* ReadCompilationAttributes(int NumberOfArguments, char** Arguments) 
 {
     CompAttributes* Attributes = malloc(sizeof(CompAttributes));
     Attributes -> Paths = FromStr("");
@@ -62,7 +62,7 @@ void ReadCallArgument(CompAttributes* Attributes, char* Argument) {
     }
 }
 
-Bool ReadPath(CompAttributes* CompilationAttributes, Alice_BigGirl* BigGirl) {
+Bool ReadCompilationPaths(CompAttributes* CompilationAttributes, AliceManagementObject* BigGirl) {
     int l = 0;
     int x = 0;
     char act = CompilationAttributes -> Paths -> Chars[x];
@@ -75,7 +75,7 @@ Bool ReadPath(CompAttributes* CompilationAttributes, Alice_BigGirl* BigGirl) {
                 l++;
             }
             char* Path = Substring(CompilationAttributes -> Paths -> Chars, x, x + l);
-            Alice_CodeObject* NewCode = OpenAliceFile(Path);
+            AliceCodeObject* NewCode = OpenAliceFile(Path);
             if (NewCode == NULL) 
             {
                 return False;

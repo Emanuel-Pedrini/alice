@@ -38,7 +38,7 @@ struct Struct__AliceType
     TypeKind Kind;
     Usize Size;
     const __AliceType* Inner;
-    __AliceVoid (*__Drop) (__AliceVoidPtr __Value);
+    __AliceVoid (*__FreeSelf) (__AliceVoidPtr __Value);
 };
 
 extern const __AliceType __AliceTypePtr_Null;

@@ -46,7 +46,7 @@ impl ArgumentReader
         return self.GetByIndex(self.Pointer + Offset);
     }
 
-    pub fn Get(&mut self) -> Option<&str>
+    pub fn GetByIndexVector(&mut self) -> Option<&str>
     {
         return self.GetByIndex(self.Pointer);
     }

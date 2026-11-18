@@ -34,7 +34,7 @@ void New(Vector* Vector, Usize ElementSize)
     Vector -> elementSize = ElementSize;
 }
 
-void* Get(Vector* Vector, Usize Index) 
+void* GetByIndexVector(Vector* Vector, Usize Index) 
 {
     if (Index >=  Vector -> size) {
         return NULL;

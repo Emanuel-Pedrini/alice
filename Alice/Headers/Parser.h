@@ -91,9 +91,9 @@ typedef struct StructParserState
 {
     Vector* Tokens;
     Usize Pointer;
-    Alice_Token* Actual;
+    AliceToken* Actual;
     Vector* Nodes;
 } ParserState;
 
-Vector* Parsenize(Alice_BigGirl* BigGirl, Vector* Tokens);
+Vector* Parsenize(AliceManagementObject* BigGirl, Vector* Tokens);
 #endif

@@ -1,19 +1,20 @@
 #ifndef _LexerH_
 #define _LexerH_
+
 #include "Headers/ArrayUtilities.h"
 #include "Headers/CodeObject.h"
+#include "Headers/StringUtilities.h"
 
 #define STRING_MARKER '\"' 
 #define REGISTER_MARKER '.'
 #define ARCHIVE_MARKER '`'
-
+#define INDENTATION_MARKER ':'
 #define CONSTANT_KEYWORD "const"
 #define VARIABLE_KEYWORD "var"
 #define FOR_KEYWORD "for"
 #define WHILE_KEYWORD "while"
 #define FUNCTION_KEYWORD "fn"
 #define LOOP_KEYWORD "loop"
-
 #define BREAK_KEYWORD "break"
 #define CONTINUE_KEYWORD "continue"
 #define DEFINE_KEYWORD "define"
@@ -22,7 +23,6 @@
 #define ELSE_IF_KEYWORD "elif"
 #define ELSE_KEYWORD "else"
 #define END_KEYWORD "end"
-
 #define STATIC_KEYWORD "static"
 #define LOCAL_KEYWORD "local"
 #define GLOBAL_KEYWORD "global"
@@ -31,40 +31,44 @@
 #define DO_KEYWORD "do"
 #define SELF_KEYWORD "self"
 #define THEN_KEYWORD "then"
-
 #define HAS_KEYWORD "has"
 #define IS_KEYWORD "is"
 #define GO_KEYWORD "go"
 #define IN_KEYWORD "in"
 #define AWAIT_KEYWORD "await"
 #define AS_KEYWORD "as"
-
 #define NOT_KEYWORD "not"
 #define AND_KEYWORD "and"
 #define OR_KEYWORD "or"
-
 #define RANGE_KEYWORD "range"
-
 #define ALICE_KEYWORD "alice"
-
-
 #define END_OF_CODE_KEYWORD "__END_OF_CODE__"
 
-typedef struct {
-    
-    String* Code;
+typedef struct Struct__AliceToken AliceToken;
+typedef struct Struct__LexerState LexerState;
+typedef struct Struct__IndentationHandler IndentationHandler;
+typedef enum Enum__AliceTokenType AliceTokenType;
 
+struct Struct__IndentationHandler
+{
+    Vector* IndentationHistory;
+    Usize LastIndentation;
+    Usize ActualIndentation;
+};
+
+IndentationHandler* NewIndentationHandler();
+Usize IndentationChanged(IndentationHandler* IndHandler);
+
+struct Struct__LexerState {
+    String* Code;
     Usize Pointer;
     char Char;
     Usize Line;
+    IndentationHandler* IndHandler;
+    Vector* Tokens;
+};
 
-} LexerState;
-
-Vector* Tokenize(Alice_BigGirl* Girl);
-Bool IsEqual(const char* Word, const char* Src);
-void Skip(LexerState* AliceState);
-
-typedef enum {
+enum Enum__AliceTokenType {
     Tk_Illegal = 0, 
         
     Tk_ArchiveMarker = 1,
@@ -169,21 +173,23 @@ typedef enum {
 
     Tk_EndOfCode 
 
-} Alice_TokenType;
+};
 
-typedef struct {
-    Alice_TokenType Type;
+struct Struct__AliceToken  {
+    AliceTokenType Type;
     char* Literal;
     Usize Start;
     Usize Length;
     Usize Line;
-} Alice_Token;
+    String* (*ConversionToString)(AliceToken*);
+};
 
-Alice_Token* CreateToken(
-    Alice_TokenType Type,
-    Usize Start,
-    Usize Length,
-    char* Literal
-);
+AliceToken* NewAliceToken(AliceTokenType Type, Usize Start, Usize Length, char* Literal);
+String* ConversionToString__AliceToken(AliceToken* InQ);
+
+
+Vector* AliceLexerTokenize(String* SourceCode);
+Bool IsEqual(const char* Word, const char* Src);
+void Skip(LexerState* AliceState);
 
 #endif
