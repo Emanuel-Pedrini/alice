@@ -5,7 +5,7 @@ use std::env;
 use std::env::{Args};
 use std::fs;
 
-struct ArgumentReader 
+struct ArgumentReader //SHE/HER
 {
     Pointer : usize,
     Current : String,
@@ -46,7 +46,7 @@ impl ArgumentReader
         return self.GetByIndex(self.Pointer + Offset);
     }
 
-    pub fn GetByIndexVector(&mut self) -> Option<&str>
+    pub fn Get(&mut self) -> Option<&str>
     {
         return self.GetByIndex(self.Pointer);
     }
@@ -56,5 +56,13 @@ impl ArgumentReader
 fn main() -> std::io::Result<()> 
 {
     let mut Reader = ArgumentReader::New();
+    let Size = Reader.Arguments.len();
+    let mut Interator = 0;
+    while Interator < Size
+    {
+        println!("{}", Reader.GetByIndex(Interator).unwrap());
+        Interator += 1;
+    }
     return Ok(());
+    
 }
