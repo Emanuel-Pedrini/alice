@@ -1,99 +1,114 @@
 #ifndef _ParserH_
 #define _ParserH_
 
-#include "Headers/InterpreterTypes.h"
+#include "Headers/AliceDevelopmentTypes.h"
+#include "Headers/AliceMemoryManagement.h"
+#include "Headers/PrattParsing.h"
 #include "Headers/Lexer.h"
 #include "Headers/AliceTypes.h"
 
-typedef enum EnumInstructionType {
-    AdressDeclr,
-    OperationDeclr,
-    AliasDeclr,
-    PositionDeclr
-} NodeType;
+typedef struct Struct__ParserState ParserState;
+typedef struct Struct__ParserNode ParserNode;
+typedef enum Enum__ParserNodeType ParserNodeType;
+typedef enum Enum__FlagType FlagType;
 
-typedef struct StructBlock
+typedef struct Struct__FunctionDeclaration FunctionDeclaration;
+typedef struct Struct__VariableDeclaration VariableDeclaration;
+typedef struct Struct__MemberDeclaration MemberDeclaration;
+typedef struct Struct__FlagDeclaration FlagDeclaration;
+typedef struct Struct__MethodCallDeclaration MethodCallDeclaration;
+typedef struct Struct__FunctionCallDeclaration FunctionCallDeclaration;
+typedef struct Struct__CallArgumentsDeclaration CallArgumentsDeclaration;
+typedef struct Struct__MemberGroupDeclaration MemberGroupDeclaration;
+typedef struct Struct__FieldAcessDeclaration FieldAcessDeclaration;
+
+typedef union Union__ParserNodeDeclaration ParserNodeDeclaration;
+
+enum Enum__ParserNodeType 
 {
-    Vector* Nodes;
-} Block;
+    NodeFunction
+};
 
-typedef struct StructAliceNumber 
+struct Struct__MemberDeclaration // A Common type of declaration
 {
-    union
-    {
-        double f;
-        int i;
-    } Value;
-    
-} AliceNumber;
+    __AliceString* Name;
+    __AliceType* Type;
+};
 
-typedef struct StructConstant 
+struct Struct__MemberGroupDeclaration
 {
-    AliceNumber* Value;
-} Constant;
+    __AliceVector* Members; // Vector<MemberDeclaration>*
+};
 
-typedef enum EnumOprExpressionKind 
+struct Struct__CallArgumentsDeclaration
 {
-    CONSTANT,
-    BINARY_OPERATION,
-} OprExpressionKind;
+    __AliceVector* Arguments;
+};
 
-typedef enum EnumBinaryOprKind 
+struct Struct__FlagDeclaration 
 {
-    BIN_OPR_ADD,
-    BIN_OPR_SUB,
-    BIN_OPR_DIV,
-    BIN_OPR_MUL
-} BinaryOprKind;
+    __AliceString* Name;
+    CallArgumentsDeclaration* CallArguments; 
+};
 
-typedef struct StructBinaryOpr 
+
+struct Struct__FunctionDeclaration
 {
-    BinaryOprKind Operation;
-    struct StructOprExpression* Left;
-    struct StructOprExpression* Right;
-} BinaryOpr;
+    __AliceString* Name;
+    __AliceType* ReturnType;
+    __AliceVector* Flags; // Vector<FlagDeclaration>*
+    MemberGroupDeclaration* Arguments; // Vector<MemberDeclaration>*
+};
 
-typedef struct StructOprExpression 
+struct Struct__FunctionCallDeclaration
 {
-    OprExpressionKind Kind;
-    union
-    {
-        BinaryOpr BinaryExpr;
-        Constant ConstantExpr;
-    } Value;
-    
-} OprExpression;
+    __AliceString* FunctionName;
+    CallArgumentsDeclaration* CallArguments;
+};
 
-typedef struct StructParserNode {
-    NodeType Type;
-    Usize Line;
-    union 
-    {
-        struct StructFunctionArgument 
-        {
-            String* Name;
-            __AliceType* Type;
-        } FunctionArgument;
-        struct StructFunction
-        {
-            String* Name;
-            __AliceType* ReturnType;
-        } Function;
-        struct StructVariable
-        {
-            String* Name;
-            __AliceType* Type;
-        } Variable;
-    } Data;
-} ParserNode;
-
-typedef struct StructParserState 
+struct Struct__VariableDeclaration
 {
-    Vector* Tokens;
+    MemberDeclaration* Member;
+    __AliceVector* Flags; // Vector<FlagDeclaration>*
+};
+
+struct Struct__MethodCallDeclaration
+{
+    ParserNodeDeclaration* Object;
+    FunctionCallDeclaration* MethodAsFunction;
+};
+
+struct  Struct__FieldAcessDeclaration
+{
+    __AliceString* ObjectName;
+    __AliceString* FieldName;
+};
+
+union Union__ParserNodeDeclaration
+{
+    FunctionDeclaration FieldFunction;
+    VariableDeclaration FieldVariable;
+    Expression FieldExpression;
+};
+
+
+struct Struct__ParserNode {
+    ParserNodeType Type;
+    ParserNodeDeclaration Declaration;
+};
+
+// Parser Tools
+struct Struct__ParserState 
+{
+    __AliceVector* InputTokens;
     Usize Pointer;
     AliceToken* Actual;
-    Vector* Nodes;
-} ParserState;
+    __AliceVector* GeneratedNodes;
+    __AliceStack* TokenStack;
+};
+ParserState* NewParserState(__AliceVector* Tokens);
 
-Vector* Parsenize(AliceManagementObject* BigGirl, Vector* Tokens);
+__AliceVector* Parsenize(ParserState* AliceState, AliceManagementObject* ManagementObject);
+ParserNodeDeclaration*(*FunctionByType(AliceTokenType T))(ParserState*);
+
 #endif

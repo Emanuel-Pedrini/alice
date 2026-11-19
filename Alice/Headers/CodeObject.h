@@ -1,8 +1,8 @@
 #ifndef _CodeObjectH_
 #define _CodeObjectH_
 
-#include "Headers/ArrayUtilities.h"
-#include "Headers/StringUtilities.h"
+#include "Headers/AliceDevelopmentTypes.h"
+#include "Headers/AliceMemoryManagement.h"
 
 typedef struct {
     char* Code;
@@ -11,9 +11,9 @@ typedef struct {
 } AliceCodeObject;
 
 typedef struct {
-    Vector* CodeObjects;
-    String* SourceCode;
-    String* OutputPath;
+    __AliceVector* CodeObjects;
+    __AliceString* SourceCode;
+    __AliceString* OutputPath;
 } AliceManagementObject;
 
 void GirlAppend(AliceManagementObject* Girl, AliceCodeObject* CodeObject);

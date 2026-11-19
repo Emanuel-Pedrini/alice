@@ -1,6 +1,6 @@
 #include "External/Libraries.h"
 #include "Headers/ArchiveManager.h"
-#include "Headers/StringUtilities.h"
+#include "Headers/CStringUtils.h"
 #include "Headers/InterpreterConstants.h"
 #include "Headers/Lexer.h"
 #include "Headers/Reader.h"
@@ -8,8 +8,8 @@
 
 CompAttributes* ReadCompilationAttributes(int NumberOfArguments, char** Arguments) 
 {
-    CompAttributes* Attributes = malloc(sizeof(CompAttributes));
-    Attributes -> Paths = FromStr("");
+    CompAttributes* Attributes = __AlAllocate(sizeof(CompAttributes));
+    Attributes -> Paths = __AlStringFrom("");
 
     Usize Count = 0;
     Usize x = 0;
@@ -21,15 +21,15 @@ CompAttributes* ReadCompilationAttributes(int NumberOfArguments, char** Argument
         char* Argument = Arguments[Count];
         if (EndsWith(Argument, ALICE_SUFFIX)) 
         {
-            String* s = FromStr(Argument);
-            AddStr(Attributes -> Paths, '{');
-            AppendStr(Attributes -> Paths, Argument);
-            AddStr(Attributes -> Paths, '}');
-            AddStr(Attributes -> Paths, '\n');
+            __AliceString* s = __AlStringFrom(Argument);
+            __AppendAlString(Attributes -> Paths, "{");
+            __AppendAlString(Attributes -> Paths, Argument);
+            __AppendAlString(Attributes -> Paths, "}");
+            __AppendAlString(Attributes -> Paths, "\n");
         }
         if (StartsWith(Argument, "*")) 
         {
-            String* s = FromStr(Argument);
+            __AliceString* s = __AlStringFrom(Argument);
             Usize Length = 0;
             for (int x = 0 ; s -> Chars[x] != '.' && s -> Chars[x] != '\0' ; x++) {
                 Length++;
@@ -38,7 +38,7 @@ CompAttributes* ReadCompilationAttributes(int NumberOfArguments, char** Argument
             Attributes -> TargetArchive = ArgumentValue;
         }
         else if (StartsWith(Argument, "-")) {
-            String* s = FromStr(Argument);
+            __AliceString* s = __AlStringFrom(Argument);
             Usize Length = 0;
             for (int x = 0 ; s -> Chars[x] != '.' && s -> Chars[x] != '\0' ; x++) {
                 Length++;

@@ -1,132 +1,83 @@
 #include "Headers/Parser.h"
 #include "External/Libraries.h"
 
-#define NODE(N) ParserNode* N = malloc(sizeof(ParserNode));
-#define EXPC(T) (ParserExpect(AliceState, T, 0))
-#define CONSUME(T) if (ParserExpect(AliceState, T, 0)) ParserNext(AliceState, 1);
-#define SAVE(V) AliceToken* V = ParserActual(AliceState);
-#define SAVE_NEXT(V) AliceToken* V = ParserActual(AliceState);ParserNext(AliceState, 1);
-#define NEXT ParserNext(AliceState, 1);
-
-#define NEXT_IS(E) ((ParserPeek(&LocalState, 1) -> Type) == (E))
-#define IS(E) ((ParserActual(&LocalState) -> Type) == (E))
-#define Alice (IS(Tk_Alice) && NEXT_IS(Tk_Comma))
-
-void ParserSet(ParserState* AliceState, Usize SetValue) 
+ParserState* NewParserState(__AliceVector* Tokens)
 {
-    AliceState -> Pointer = SetValue;
+    ParserState* TemporaryBuffer = __AlAllocate(sizeof(ParserState));
+    TemporaryBuffer -> Actual = __GetAlVector(Tokens, 0);
+    TemporaryBuffer -> Pointer = 0;
+    TemporaryBuffer -> InputTokens = Tokens;
+    TemporaryBuffer -> GeneratedNodes = __NewAlVector(sizeof(ParserNode));
+    TemporaryBuffer -> TokenStack = __NewAlStack(sizeof(AliceToken));
+    return TemporaryBuffer;
 }
 
-void ParserNext(ParserState* AliceState, int Offset) 
+AliceToken* CurrentTokenParserState(ParserState* AliceState)
 {
-    ParserSet(AliceState, AliceState -> Pointer + (Offset));
+    return ((AliceToken*)__GetAlVector(AliceState -> InputTokens, AliceState -> Pointer));
 }
 
-AliceToken* ParserActual(ParserState* AliceState) 
+AliceToken* PeekTokenParserState(ParserState* AliceState, int32_t Offset)
 {
-    return GetByIndexVector(AliceState -> Tokens, AliceState -> Pointer);
+    int32_t AcessIndex = AliceState -> Pointer + Offset;
+    if (AcessIndex < 0 || AcessIndex > AliceState -> InputTokens -> VSize) return NULL; 
+    return ((AliceToken*)__GetAlVector(AliceState -> InputTokens, AcessIndex));
+}
+__Void SetPointerParserState(ParserState* AliceState, Usize NewValue)
+{
+    if (NewValue > AliceState -> InputTokens -> VSize) return;
+    AliceState -> Pointer = NewValue;
+    AliceState -> Actual = CurrentTokenParserState(AliceState);
 }
 
-AliceToken* ParserPeek(ParserState* AliceState, int Offset)
+__Void FowardPointerParserState(ParserState* AliceState)
 {
-    Usize Pos = AliceState -> Pointer + Offset;
-    AliceToken* t = malloc(sizeof(AliceToken));
-    t = GetByIndexVector(AliceState -> Tokens, Pos);
-    return t;
+    SetPointerParserState(AliceState, AliceState -> Pointer + 1);
 }
 
-Bool ParserExpect(ParserState* AliceState, AliceTokenType Expect, int Offset)
+AliceToken* ConsumeTokenParserState(ParserState* AliceState)
 {
-    Usize Pos = AliceState -> Pointer + Offset;
-    AliceToken* t = GetByIndexVector(AliceState -> Tokens, Pos);
-    return t -> Type == Expect ? True : False;
-}
-
-ParserNode* ParseType(ParserState* AliceState)
-{
-
-}
-
-ParserNode* ParsePrefix(ParserState* AliceState)
-{
-    NODE(N)
-    return N;
+    AliceToken* T = PeekTokenParserState(AliceState, 0);
+    FowardPointerParserState(AliceState);
+    return T;
 }
 
 
-ParserNode* ParseIndentifier(ParserState* AliceState)
+ParserNodeDeclaration* ParsenizeIndentifier(ParserState* AliceState)
 {
-    NODE(N)
-    SAVE_NEXT(NameIdentifier)
-    if EXPC(Tk_Colon)
+    AliceToken* IndentifierToken = ConsumeTokenParserState(AliceState);
+    switch (CurrentTokenParserState(AliceState) -> Type)
     {
-        NEXT
-        if EXPC(Tk_Indentifier)
-        {
-            SAVE_NEXT(TypeIdentifier)
-        }
-        else if EXPC(Tk_Equal)
-        {
-            NEXT
-        }
-        else 
-        {
-            NEXT
-        }
-    }
-    else if EXPC(Tk_Equal)
-    {
-
-    }
-
-    else if EXPC(Tk_Point)
-    {
-
-    }
-}
-
-ParserNode* ParseOperation(ParserState* AliceState)
-{
-
-}
-
-ParserNode* ParserRead(ParserState* AliceState)
-{
-    AliceToken* A = ParserActual(AliceState);
-    Usize L = 0;
-    
-    switch (A -> Type)
-    {
-        case Tk_Indentifier:
-            ParseIndentifier(AliceState);
+        case Tk_Colon:
+            break;
+        case Tk_Equal:
             break;
         default:
-            L = 1;
             break;
     }
-    ParserNext(AliceState, L);
+};
+
+ParserNodeDeclaration* ParsenizeDeclaration(ParserState* AliceState)
+{
+    AliceToken* ActualToken = PeekTokenParserState(AliceState, 0);
 }
 
-Vector* Parsenize(AliceManagementObject* BigGirl, Vector* Tokens) 
+ParserNodeDeclaration*(*FunctionByType(AliceTokenType T))(ParserState*)
 {
-    ParserState LocalState;
-    LocalState.Pointer = 0;
-    LocalState.Tokens = Tokens;
-    LocalState.Actual = NULL;
-
-    VECTOR(NodeVector, ParserNode)
-
-    AliceToken* Token = malloc(sizeof(AliceToken));
-    Token -> Type = Tk_Illegal;
-    Token -> Length = 0; 
-    Token -> Start = 0;
-    while (1)
+    switch (T)
     {
-        if IS(Tk_EndOfCode) break;
-        else
-        {
-            ParserRead(&LocalState);
-        }
+        case Tk_Indentifier: return ParsenizeIndentifier;
+        default: 
+            return NULL;
     }
+}
+
+__AliceVector* Parsenize(ParserState* AliceState, AliceManagementObject* ManagementObject)
+{
     return NULL;
+    while(!(PeekTokenParserState(AliceState, 0) -> Type == Tk_EndOfCode || PeekTokenParserState(AliceState, 0) == NULL))
+    {
+        ParsenizeDeclaration(AliceState);
+        FowardPointerParserState(AliceState);
+    }
 }

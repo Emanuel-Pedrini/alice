@@ -3,7 +3,7 @@
 CodeBlock* CBlock()
 {
     CBLOCK(B)
-    VECTOR(V, CodeLine)
+    __AliceVector* V = __NewAlVector(sizeof(CodeLine));
     B -> HasFormat = False;
     B -> CodeLines = V;
     return B;
@@ -11,7 +11,7 @@ CodeBlock* CBlock()
 
 Bool CBlockAppend(CodeBlock* B, CodeLine* L)
 {
-    Add(B -> CodeLines, L);
+    __PushAlVector(B -> CodeLines, L);
     return True;
 }
 
@@ -19,16 +19,16 @@ Bool CBlockAppend(CodeBlock* B, CodeLine* L)
 CodeLine* CLine(const char* Content)
 {
     CLINE(L)
-    L -> Content = PSTR(Content);
+    L -> Content = __AlStringFrom(Content);
     return L;
 }
 
 CodeWritter* CWritter(const char* TargetPath)
 {
     CWRITTER(W)
-    W -> TargetPath = PSTR(TargetPath);
+    __AliceVector* V = __NewAlVector(sizeof(CodeLine));
+    W -> TargetPath = __AlStringFrom(TargetPath);
     W -> Pointer = (Usize) 0;
-    VECTOR(V, CodeLine)
     W -> WriteContent = V;
     return W;
 }
@@ -36,26 +36,26 @@ CodeWritter* CWritter(const char* TargetPath)
 Bool CWriteLine(CodeWritter* W, CodeLine* L)
 {
     CLINE(LA)
-    LA -> Content = ConcatStr(L -> Content, PSTR("\n"));
-    FileWrite(SPTR(W -> TargetPath), SPTR(LA -> Content), "a");
+    LA -> Content = __ConcatenateAlString(2, L -> Content, __AlStringFrom("\n"));
+    FileWrite((W -> TargetPath) -> Chars, (LA -> Content) -> Chars, "a");
 }
 Bool CWriteBlock(CodeWritter* W, CodeBlock* B)
 {
-    for (int I = 0 ; I < B -> CodeLines -> size ; I++)
+    for (int I = 0 ; I < B -> CodeLines -> VSize ; I++)
     {
-        CWriteLine(W, GetByIndexVector(B -> CodeLines, I));
+        CWriteLine(W, __GetAlVector(B -> CodeLines, I));
     }
 }
 
 Bool CWrite(CodeWritter* W)
 {
-    String* S = FromStr("");
-    for (int I = 0 ; I < W -> WriteContent -> size; I++)
+    __AliceString* S = __AlStringFrom("");
+    for (int I = 0 ; I < W -> WriteContent -> VSize; I++)
     {
-        CodeLine* L = (CodeLine*)GetByIndexVector(W -> WriteContent, I);
-        AppendStr(S, L -> Content -> Chars);
+        CodeLine* L = (CodeLine*)__GetAlVector(W -> WriteContent, I);
+        __AppendAlString(S, L -> Content -> Chars);
     }
-    int R = FileWrite(SPTR(W -> TargetPath), S -> Chars, "w");
+    int R = FileWrite((W -> TargetPath) -> Chars, S -> Chars, "w");
     if (R) return False;
     return True;
 }
@@ -63,18 +63,18 @@ Bool CWrite(CodeWritter* W)
 Bool CWritterAppendLine(CodeWritter* W, CodeLine* L)
 {
     CLINE(LA)
-    LA -> Content = FromStr("\n");
-    AppendStr(LA -> Content, L -> Content -> Chars);
-    Add(W -> WriteContent, LA);
+    LA -> Content = __AlStringFrom("\n");
+    __AppendAlString(LA -> Content, L -> Content -> Chars);
+    __PushAlVector(W -> WriteContent, LA);
     return True;
 }
 
 Bool CWriterAppendBlock(CodeWritter* W, CodeBlock* B)
 {
     if (B -> HasFormat) CWritterAppendLine(W, CLine(B -> S -> Content -> Chars));   
-    for (int I = 0 ; I < B -> CodeLines -> size ; I++)
+    for (int I = 0 ; I < B -> CodeLines -> VSize ; I++)
     {
-        CodeLine* L = ((CodeLine*)GetByIndexVector(B -> CodeLines, I));
+        CodeLine* L = ((CodeLine*)__GetAlVector(B -> CodeLines, I));
         CWritterAppendLine(W, L);
     }
     if (B -> HasFormat) CWritterAppendLine(W, CLine(B -> E -> Content -> Chars)); 
@@ -83,7 +83,7 @@ Bool CWriterAppendBlock(CodeWritter* W, CodeBlock* B)
 CodeFormat* CFormat(const char* Content)
 {
     CFORMAT(F)
-    F -> Content = PSTR(Content);
+    F -> Content = __AlStringFrom(Content);
     return F;      
 }
 

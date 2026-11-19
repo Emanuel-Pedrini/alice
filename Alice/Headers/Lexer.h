@@ -1,14 +1,15 @@
 #ifndef _LexerH_
 #define _LexerH_
 
-#include "Headers/ArrayUtilities.h"
 #include "Headers/CodeObject.h"
-#include "Headers/StringUtilities.h"
+#include "Headers/CStringUtils.h"
+#include "Headers/AliceMemoryManagement.h"
+#include "Headers/AliceDevelopmentTypes.h"
 
-#define STRING_MARKER '\"' 
-#define REGISTER_MARKER '.'
-#define ARCHIVE_MARKER '`'
-#define INDENTATION_MARKER ':'
+#define STRING_MARKER "\""
+#define REGISTER_MARKER "."
+#define ARCHIVE_MARKER "`"
+#define INDENTATION_MARKER ":"
 #define CONSTANT_KEYWORD "const"
 #define VARIABLE_KEYWORD "var"
 #define FOR_KEYWORD "for"
@@ -41,6 +42,7 @@
 #define AND_KEYWORD "and"
 #define OR_KEYWORD "or"
 #define RANGE_KEYWORD "range"
+#define STRUCT_KEYWORD "struct"
 #define ALICE_KEYWORD "alice"
 #define END_OF_CODE_KEYWORD "__END_OF_CODE__"
 
@@ -51,7 +53,7 @@ typedef enum Enum__AliceTokenType AliceTokenType;
 
 struct Struct__IndentationHandler
 {
-    Vector* IndentationHistory;
+    __AliceVector* IndentationHistory;
     Usize LastIndentation;
     Usize ActualIndentation;
 };
@@ -60,12 +62,13 @@ IndentationHandler* NewIndentationHandler();
 Usize IndentationChanged(IndentationHandler* IndHandler);
 
 struct Struct__LexerState {
-    String* Code;
+    __AliceString* Code;
     Usize Pointer;
     char Char;
     Usize Line;
+    Usize Depth;
     IndentationHandler* IndHandler;
-    Vector* Tokens;
+    __AliceVector* Tokens;
 };
 
 enum Enum__AliceTokenType {
@@ -119,6 +122,7 @@ enum Enum__AliceTokenType {
     Tk_NotEqual = 38,
     Tk_DoubleColon = 39,
 
+
     Tk_For = 40,
     Tk_While = 41,
     Tk_Loop = 42,
@@ -169,7 +173,10 @@ enum Enum__AliceTokenType {
     Tk_And = 95,
     Tk_Or = 96,
     Tk_Not = 97,
+    
     Tk_Range = 104,
+    Tk_Tilde = 105,
+    Tk_Struct = 106,
 
     Tk_EndOfCode 
 
@@ -181,14 +188,14 @@ struct Struct__AliceToken  {
     Usize Start;
     Usize Length;
     Usize Line;
-    String* (*ConversionToString)(AliceToken*);
+    __AliceString* (*ConversionToString)(AliceToken*);
 };
 
 AliceToken* NewAliceToken(AliceTokenType Type, Usize Start, Usize Length, char* Literal);
-String* ConversionToString__AliceToken(AliceToken* InQ);
+__AliceString* ConversionToString__AliceToken(AliceToken* InQ);
 
 
-Vector* AliceLexerTokenize(String* SourceCode);
+__AliceVector* AliceLexerTokenize(__AliceString* SourceCode);
 Bool IsEqual(const char* Word, const char* Src);
 void Skip(LexerState* AliceState);
 

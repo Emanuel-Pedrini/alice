@@ -1,11 +1,9 @@
 #include "External/Libraries.h"
 #include "Headers/ArchiveManager.h"
-#include "Headers/StringUtilities.h"
 #include "Headers/InterpreterConstants.h"
 #include "Headers/Lexer.h"
 #include "Headers/Parser.h"
 #include "Headers/Reader.h"
-#include "Headers/DictionaryUtilities.h"
 #include "Compiler/AliceCompilerUtilities.h"
 #include "Compiler/AliceC.h"
 #include "Headers/AliceTypes.h"
@@ -18,46 +16,46 @@ Bool ReadAndDecode(int argc, char* argv[])
     AliceManagementObject* BigGirl = NewAliceManagementObject();
     Bool Result = ReadCompilationPaths(CompilationAttributes, BigGirl); 
     if (!Result) return 0;
-    Vector* Tokens = AliceLexerTokenize(BigGirl -> SourceCode);
-    Parsenize(BigGirl, Tokens);
-    
+    __AliceVector* Tokens = AliceLexerTokenize(BigGirl -> SourceCode);
+    ParserState* AliceParserState = NewParserState(Tokens);
+    __AliceVector* Nodes = Parsenize(AliceParserState, BigGirl);
     {
 
     /* 
     **TEMPORARY : ONLY FOR TESTS, REMOVE LATER. 
     */
-    String* x = FromStr("");
-    for (int i = 0 ; i < Len(Tokens) ; i++) 
+    __AliceString* x = __AlStringFrom("");
+    for (int i = 0 ; i < Tokens -> VSize ; i++) 
     {
         char p[50];
-        AliceToken* t = (AliceToken*)GetByIndexVector(Tokens, i);
-        String* s = FromStr("");
-        char* c = Substring(BigGirl -> SourceCode -> Chars, t -> Start, t-> Start + t -> Length);
+        AliceToken* t = (AliceToken*)__GetAlVector(Tokens, i);
+        __AliceString* s = __AlStringFrom("");
+        char* c = t -> Literal;
         if (t -> Type == Tk_Dedent) 
         {
-            s = FromStr("<_DEDENT_>");
+            s = __AlStringFrom("<_DEDENT_>");
         } 
         else if (t -> Type == Tk_Indent) 
         {
-            s = FromStr("<_INDENT_>");
+            s = __AlStringFrom("<_INDENT_>");
         } 
         else if (t -> Type == Tk_NewLine) 
         {
-            s = FromStr("\\n");
+            s = __AlStringFrom("\\n");
         }
         else 
         {
-            s = FromStr(c);
+            s = __AlStringFrom(c);
         }
         snprintf(p, sizeof(p), "(%d) ", t -> Type);
-        AppendStr(x, p);
-        AddStr(x, '\"');
-        AppendStr(x, s -> Chars);
-        AddStr(x, '\"');
-        AddStr(x, '\n');
+        __AppendAlString(x, p);
+        __AppendAlString(x, "\"");
+        __AppendAlString(x, s -> Chars);
+        __AppendAlString(x, "\"");
+        __AppendAlString(x, "\n");
     }
-        String* s = FromStr(CompilationAttributes -> TargetArchive);   
-        AppendStr(s, ".txt");
+        __AliceString* s = __AlStringFrom(CompilationAttributes -> TargetArchive);   
+        __AppendAlString(s, ".txt");
         FileWrite(s -> Chars, x -> Chars, "w");
     }
     return True;
@@ -66,6 +64,36 @@ Bool ReadAndDecode(int argc, char* argv[])
 int VirtualMain(int argc, char* argv[])
 {
     ReadAndDecode(argc, argv);
+    __AlFreeAll();
+    return 0;
+}
+
+int Debug__PrattParsenizeExpression()
+{
+    char Input[128];
+    __AliceString* S = __AlStringFrom("");
+    char ActualInput = '\0';
+    while (ActualInput != '\n')
+    {
+        ActualInput = getchar();
+        __AddCharAlString(S, ActualInput);
+    }
+    printf("\n%s", S -> Chars);
+    __AliceVector* Tokens = AliceLexerTokenize(S);
+    __AliceVector* CleanTokens = __NewAlVector(sizeof(AliceToken));
+    __ForIn(Tokens, I, 0) 
+    {
+        AliceToken* T = __GetAlVector(Tokens, I);
+        if (!(T -> Type == Tk_EndOfCode || T -> Type == Tk_ArchiveMarker))
+        {
+            __PushAlVector(CleanTokens, T);
+        }
+    }
+    ExpressionReader* R = NewExpressionReader();
+    R -> ConstExpression = CleanTokens;
+    R -> Pointer = 0;
+    Expression* E = ParseExpression(R, 0);
+    printf("\n%s", E -> ConversionToString(E) -> Chars);
     return 0;
 }
 

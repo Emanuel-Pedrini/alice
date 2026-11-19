@@ -1,8 +1,7 @@
 #include "Headers/ArchiveManager.h"
-#include "Headers/InterpreterTypes.h"
-#include "Headers/ArrayUtilities.h"
+#include "Headers/AliceDevelopmentTypes.h"
+#include "Headers/CStringUtils.h"
 #include "External/Libraries.h"
-#include "Headers/StringUtilities.h"
 
 char* OpenFileNWindows(char* ArchivePath, Usize Capacity) {
     Usize capacity = Capacity;
@@ -15,7 +14,7 @@ char* OpenFileNWindows(char* ArchivePath, Usize Capacity) {
 
     char* totalBuffer;
 
-    totalBuffer = (char*) malloc(capacity * sizeof(char));
+    totalBuffer = (char*) __AlAllocate(capacity * sizeof(char));
     if (totalBuffer == NULL) {
         fclose(file);
         return NULL;
@@ -25,10 +24,12 @@ char* OpenFileNWindows(char* ArchivePath, Usize Capacity) {
 
     while (fgets(buffer, sizeof(buffer), file) != NULL) {
         while (size + strlen(buffer) + 1 >= capacity) {
+            Usize old_capacity = capacity;
             capacity = capacity * 2;
-            char *TemporaryBuffer = (char*) realloc(totalBuffer, capacity * sizeof(char));
+            __QMark
+            char *TemporaryBuffer = (char*) __AlReallocate(totalBuffer, old_capacity * sizeof(char), capacity * sizeof(char));
             if (TemporaryBuffer == NULL) {
-                free(totalBuffer);
+                __QUnmark
                 fclose(file);
                 return NULL;
             }
@@ -43,7 +44,7 @@ char* OpenFileNWindows(char* ArchivePath, Usize Capacity) {
 
 AliceCodeObject* OpenAliceFile(char* ArchivePath) 
 {
-    AliceCodeObject* NewCodeObject = malloc(sizeof(AliceCodeObject));
+    AliceCodeObject* NewCodeObject = __AlAllocate(sizeof(AliceCodeObject));
     char* Code = OpenFileNWindows(ArchivePath, 1024);
     if (Code == NULL) {
         printf(">> ERROR : Could not find '%s'!\n", ArchivePath);
@@ -64,7 +65,7 @@ int FileWrite(char* Path, const char* Content, const char* Mode)
         free(File);
         return 1;
     }
-    fprintf(File, Content);
+    fputs(Content, File);
     fclose(File);
     return 0;
 }

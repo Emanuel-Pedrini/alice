@@ -1,11 +1,9 @@
 #ifndef _AliceTypesH_
 #define _AliceTypesH_
 
-#include "Headers/InterpreterTypes.h"
+#include "Headers/AliceMemoryManagement.h"
+#include "Headers/AliceDevelopmentTypes.h"
 #include "External/Libraries.h"
-
-typedef void __AliceVoid;
-typedef void* __AliceVoidPtr;
 
 typedef struct Struct__AliceType __AliceType;
 
@@ -38,7 +36,7 @@ struct Struct__AliceType
     TypeKind Kind;
     Usize Size;
     const __AliceType* Inner;
-    __AliceVoid (*__FreeSelf) (__AliceVoidPtr __Value);
+    __Void (*__FreeSelf) (__VoidPointer __Value);
 };
 
 extern const __AliceType __AliceTypePtr_Null;

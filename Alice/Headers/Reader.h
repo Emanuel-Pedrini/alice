@@ -1,6 +1,9 @@
 #ifndef _ReaderH_
 #define _ReaderH_
 
+#include "Headers/AliceMemoryManagement.h"
+#include "Headers/AliceDevelopmentTypes.h"
+
 typedef enum {
     C = 0,
     LLVM = 1 
@@ -12,8 +15,8 @@ typedef enum {
 
 typedef struct StructCompAttributes {
     TargetAttribute Target;
-    String* Paths;
-    Vector* Specifications;
+    __AliceString* Paths;
+    __AliceVector* Specifications;
     char* TargetArchive;
 } CompAttributes;
 

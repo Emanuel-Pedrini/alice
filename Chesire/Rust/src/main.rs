@@ -14,11 +14,11 @@ struct ArgumentReader //SHE/HER
 
 impl ArgumentReader 
 {
-    fn New() -> Self
+    fn New() -> AliceState
     {
         let EnviromentArguments : Vec<String> = env::args().collect();
         let InitialPointer = 0;
-        Self 
+        AliceState 
         {
             Pointer : InitialPointer,
             Current : EnviromentArguments.get(InitialPointer).cloned().unwrap_or_default(),

@@ -1,7 +1,8 @@
 #ifndef _ArchiveManagerH_
 #define _ArchiveManagerH_
 
-#include "Headers/ArrayUtilities.h"
+#include "Headers/AliceMemoryManagement.h"
+#include "Headers/AliceDevelopmentTypes.h"
 #include "Headers/CodeObject.h"
 
 char* OpenFile(char* ArchivePath, Usize Capacity);

@@ -3,28 +3,21 @@
 #include "Headers/Lexer.h"
 void GirlAppend(AliceManagementObject* Girl, AliceCodeObject* CodeObject) 
 {
-    Add(Girl -> CodeObjects, CodeObject);
+    __PushAlVector(Girl -> CodeObjects, CodeObject);
 
-    AddStr(Girl -> SourceCode, ARCHIVE_MARKER);
-    for (int x = 0; CodeObject -> Name[x] != '\0'; x++) 
-    {
-        AddStr(Girl -> SourceCode, CodeObject -> Name[x]);
-    }
-    AddStr(Girl -> SourceCode, ARCHIVE_MARKER);
-    AddStr(Girl -> SourceCode, ' ');
-
-    for (int x = 0; CodeObject -> Code[x] != '\0'; x++) 
-    {
-        AddStr(Girl -> SourceCode, CodeObject -> Code[x]);
-    }
+    __AppendAlString(Girl -> SourceCode, ARCHIVE_MARKER);
+    __AppendAlString(Girl -> SourceCode, CodeObject -> Name);
+    __AppendAlString(Girl -> SourceCode, ARCHIVE_MARKER);
+    __AppendAlString(Girl -> SourceCode, " ");
+    __AppendAlString(Girl -> SourceCode, CodeObject -> Code);
 }
 
 AliceManagementObject* NewAliceManagementObject()
 {
-    AliceManagementObject* Girl = malloc(sizeof(AliceManagementObject));
-    VECTOR(TokenVector, AliceToken)
+    AliceManagementObject* Girl = __AlAllocate(sizeof(AliceManagementObject));
+    __AliceVector* TokenVector = __NewAlVector(sizeof(AliceCodeObject));
 
     Girl -> CodeObjects = TokenVector;
-    Girl -> SourceCode = FromStr("");
+    Girl -> SourceCode = __AlStringFrom("");
     return Girl;
 }
