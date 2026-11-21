@@ -1,6 +1,8 @@
 #include "Headers/CodeObject.h"
 #include "External/Libraries.h"
 #include "Headers/Lexer.h"
+#include "Headers/ForwardInclude.h"
+
 void GirlAppend(AliceManagementObject* Girl, AliceCodeObject* CodeObject) 
 {
     __PushAlVector(Girl -> CodeObjects, CodeObject);

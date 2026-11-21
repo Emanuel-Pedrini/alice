@@ -3,14 +3,17 @@
 
 #include "Headers/AliceMemoryManagement.h"
 #include "Headers/AliceDevelopmentTypes.h"
+#include "Headers/PrattParsing.h"
 #include "External/Libraries.h"
+#include "Headers/Lexer.h"
+#include "Headers/ForwardInclude.h"
 
-typedef struct Struct__AliceType __AliceType;
+extern __AliceDictionary* __GlobaStringToAlTypelDictionary;
 
-typedef enum EnumAliceTypeKind
+typedef enum
 {
-    AlType_Null,
-    AlType_i8 = 0,
+    AlType_Null = 0,
+    AlType_i8,
     AlType_i16,
     AlType_i32,
     AlType_i64,
@@ -23,33 +26,29 @@ typedef enum EnumAliceTypeKind
     AlType_f32,
     AlType_f64,
     AlType_Char,
-    AlType_String,
-    AlType_List,
-    AlType_Vector,
+    AlType_Array,
+    AlType_Boolean,
+    AlType_Pointer,
+    AlType_Generic,
     AlType_Userdata
-} TypeKind;
+} AliceTypeKind;
 #define TPK (AlType_f64 - AlType_i8)
 
 struct Struct__AliceType
 {
     const char* Literal;
-    TypeKind Kind;
-    Usize Size;
-    const __AliceType* Inner;
-    __Void (*__FreeSelf) (__VoidPointer __Value);
+    AliceTypeKind Kind;
+    __AliceType* RecursiveType;
+    Expression* SizeExpression;
+    __AliceVector* InternalFlags;
+    Bool Flagged;
+    Bool Sized;
+    __AliceString* (*ConversionToString)(__AliceType*);
 };
 
-extern const __AliceType __AliceTypePtr_Null;
-extern const __AliceType __AliceTypePtr_i8;
-extern const __AliceType __AliceTypePtr_i16;
-extern const __AliceType __AliceTypePtr_i32;
-extern const __AliceType __AliceTypePtr_i64;
-extern const __AliceType __AliceTypePtr_u8;
-extern const __AliceType __AliceTypePtr_u16;
-extern const __AliceType __AliceTypePtr_u32;
-extern const __AliceType __AliceTypePtr_u64;
-extern const __AliceType __AliceTypePtr_f32;
-extern const __AliceType __AliceTypePtr_f64;
-extern const __AliceType __AliceTypePtr_Char; 
-extern const __AliceType __AliceTypePtr_String;
+__AliceType* __NewAlGenericType(const char* __Literal, AliceTypeKind __Kind, __AliceType* __RecursiveType);
+__AliceString* ConversionToString__AliceType(__AliceType* __AlType);
+AliceTypeKind __NativeAlTypeFromString(__AliceString* __Key, Bool __Override);
+Bool __CompareAliceType(__AliceType* Type, __AliceType* OtherType);
+Bool __IsBooleanOperator(AliceTokenType Type);
 #endif

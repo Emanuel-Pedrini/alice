@@ -11,31 +11,31 @@
 typedef struct StructCodeLine
 {
     __AliceString* Content;
-} CodeLine;
+} __AliceCodeLine;
 
-#define CLINE(L) CodeLine* L = __AlAllocate(sizeof(CodeLine));
-CodeLine* CLine(const char* Content);
+#define CLINE(L) __AliceCodeLine* L = __AlAllocate(sizeof(__AliceCodeLine));
+__AliceCodeLine* CLine(const char* Content);
 
 typedef struct StructCodeFormat
 {
     __AliceString* Content;
-} CodeFormat;
-#define CFORMAT(F) CodeFormat* F = __AlAllocate(sizeof(CodeFormat));
-#define QFORMAT(F, C) CodeFormat* F = CFormat(C);
-CodeFormat* CFormat(const char* Content);
+} __AliceCodeFormat;
+#define CFORMAT(F) __AliceCodeFormat* F = __AlAllocate(sizeof(__AliceCodeFormat));
+#define QFORMAT(F, C) __AliceCodeFormat* F = CFormat(C);
+__AliceCodeFormat* CFormat(const char* Content);
 
 typedef struct StructCodeBlock
 {
     __AliceVector* CodeLines;
     Bool HasFormat;
-    CodeFormat* S;
-    CodeFormat* E;
-} CodeBlock;
+    __AliceCodeFormat* S;
+    __AliceCodeFormat* E;
+} __AliceCodeBlock;
 
-#define CBLOCK(B) CodeBlock* B = __AlAllocate(sizeof(CodeBlock));
-CodeBlock* CBlock();
-Bool CBlockAppend(CodeBlock* B, CodeLine* L);
-Bool CBlockFormat(CodeBlock* B, CodeFormat* S, CodeFormat* E);
+#define CBLOCK(B) __AliceCodeBlock* B = __AlAllocate(sizeof(__AliceCodeBlock));
+__AliceCodeBlock* CBlock();
+Bool CBlockAppend(__AliceCodeBlock* B, __AliceCodeLine* L);
+Bool CBlockFormat(__AliceCodeBlock* B, __AliceCodeFormat* S, __AliceCodeFormat* E);
 
 typedef struct StructCodeWritter
 {
@@ -46,11 +46,11 @@ typedef struct StructCodeWritter
 
 #define CWRITTER(W) CodeWritter* W = __AlAllocate(sizeof(CodeWritter));
 CodeWritter* CWritter(const char* TargetPath);
-Bool CWriteLine(CodeWritter* W, CodeLine* L);
-Bool CWriteBlock(CodeWritter* W, CodeBlock* B);
+Bool CWriteLine(CodeWritter* W, __AliceCodeLine* L);
+Bool CWriteBlock(CodeWritter* W, __AliceCodeBlock* B);
 Bool CWrite(CodeWritter* W);
-Bool CWriterAppendBlock(CodeWritter* W, CodeBlock* B);
-Bool CWritterAppendLine(CodeWritter* W, CodeLine* L);
-CodeBlock* CBlockFormatted(const char* Open, const char* Close);
+Bool CWriterAppendBlock(CodeWritter* W, __AliceCodeBlock* B);
+Bool CWritterAppendLine(CodeWritter* W, __AliceCodeLine* L);
+__AliceCodeBlock* CBlockFormatted(const char* Open, const char* Close);
 
 #endif

@@ -2,6 +2,7 @@
 #define _AliceMemoryManagementH_
 
 #include "Headers/AliceDevelopmentTypes.h"
+#include "Headers/ForwardInclude.h"
 #include "External/Libraries.h"
 
 typedef struct Struct__AliceAllocationChunk __AliceAllocationChunk;

@@ -1,6 +1,7 @@
 #include "Headers/ArchiveManager.h"
 #include "Headers/AliceDevelopmentTypes.h"
 #include "Headers/CStringUtils.h"
+#include "Headers/ForwardInclude.h"
 #include "External/Libraries.h"
 
 char* OpenFileNWindows(char* ArchivePath, Usize Capacity) {

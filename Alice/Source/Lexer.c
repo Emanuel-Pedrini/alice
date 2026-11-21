@@ -9,14 +9,14 @@
 IndentationHandler* NewIndentationHandler()
 {
     IndentationHandler* IndHandler = __AlAllocate(sizeof(IndentationHandler));
-    __AliceVector* V = __NewAlVector(sizeof(Usize));
+    __AliceStack* V = __NewAlStack(sizeof(Usize));
     IndHandler -> IndentationHistory = V;
     IndHandler -> ActualIndentation = 0;
     IndHandler -> LastIndentation = 0;
     return IndHandler; 
 }
 
-Usize IndentationChanged(IndentationHandler* IndHandler)
+Dsize IndentationChanged(IndentationHandler* IndHandler)
 {
     if (IndHandler -> LastIndentation == IndHandler -> ActualIndentation) return 0;
     if (IndHandler -> LastIndentation < IndHandler -> ActualIndentation) return 1;
@@ -51,8 +51,9 @@ AliceToken* NewAliceToken(
 __AliceString* ConversionToString__AliceToken(AliceToken* InQ)
 {
     __AliceString* S =  __AlStringFrom("");
+    if (InQ -> Type == Tk_ExplicitCast || InQ -> Type == Tk_CowardCast) __AppendAlString(S, "Cast<");
     __AppendAlString(S, __AlStringFrom(InQ -> Literal) -> Chars);
-    __AppendAlString(S, "");
+    if (InQ -> Type == Tk_ExplicitCast || InQ -> Type == Tk_CowardCast) __AppendAlString(S, ">");
     return S;
 }
 
@@ -99,21 +100,26 @@ void HandleLineAliceState(LexerState* AliceState)
     *IndentationCount = CountIndentationAliceState(AliceState);
     AliceState -> IndHandler -> LastIndentation = AliceState -> IndHandler -> ActualIndentation;
     AliceState -> IndHandler -> ActualIndentation = *IndentationCount;
-    __PushAlVector(AliceState -> IndHandler -> IndentationHistory, IndentationCount);
 
-    Usize IndentationChange = IndentationChanged(AliceState -> IndHandler);
+    Dsize IndentationChange = IndentationChanged(AliceState -> IndHandler);
     if (IndentationChange)
     {
         AliceToken* T;
         switch (IndentationChange)
         {
         case 1:
-            T = NewAliceToken(Tk_Indent, 0, 0, "Indent");
+            T = NewAliceToken(Tk_Indent, 0, 0, "<__INDENT__>");
+            __PushAlStack(AliceState -> IndHandler -> IndentationHistory, IndentationCount);
             __PushAlVector(AliceState -> Tokens, T);
             break;
         case -1:
-            T = NewAliceToken(Tk_Dedent, 0, 0, "Dedent");
-            __PushAlVector(AliceState -> Tokens, T);
+            Dsize DedentCounter = AliceState -> IndHandler -> IndentationHistory -> Elements -> VSize;
+            while ((*(Usize*)__LookAlStack(AliceState -> IndHandler -> IndentationHistory)) > (*IndentationCount) && DedentCounter > 0)
+            {
+                DedentCounter--;
+                T = NewAliceToken(Tk_Dedent, 0, 0, "<__DEDENT__>");
+                __PushAlVector(AliceState -> Tokens, T);
+            }
             break;
         default:
             break;
@@ -374,7 +380,7 @@ AliceToken* HandleSymbolAliceState(LexerState* AliceState)
     return NewAliceToken(Type, Start, Length, Word);
 }
 
-AliceTokenType HandleFreewordAliceState(const char* Word) 
+AliceTokenType HandleFreewordAliceState(LexerState* AliceState, const char* Word, uint32_t Length) 
 {
 	IfKeyword(RETURN_KEYWORD, Tk_Return)
 	Keyword(DO_KEYWORD, Tk_Do)
@@ -391,7 +397,10 @@ AliceTokenType HandleFreewordAliceState(const char* Word)
 	Keyword(ELSE_IF_KEYWORD, Tk_Elif)
 	Keyword(ELSE_KEYWORD, Tk_Else)
 	Keyword(END_KEYWORD, Tk_End)
-	Keyword(STATIC_KEYWORD, Tk_Static)
+	else if (IsCaseEqual(Word, "static") && Peek(AliceState, Length) != '<') 
+        {
+            return Tk_Static;
+        }
 	Keyword(LOCAL_KEYWORD, Tk_Local)
 	Keyword(GLOBAL_KEYWORD, Tk_Global)
 	Keyword(EXCEPT_KEYWORD, Tk_Except)
@@ -423,8 +432,23 @@ AliceToken* ReadIndentifier(LexerState* AliceState)
         Length++;
     }
     char* Word =  Substring(AliceState -> Code -> Chars, Start, (Start + Length));
-    AliceTokenType Type = HandleFreewordAliceState(Word);
-    return NewAliceToken(Type, Start, Length, Word);
+    AliceTokenType Type = HandleFreewordAliceState(AliceState, Word, Length);
+    
+    Dsize Offset = -1;
+    switch (Peek(AliceState, Offset))
+    {
+        case '!': 
+        {
+            if (Offset < 0) {__PopAlVector(AliceState -> Tokens); return NewAliceToken(Tk_ExplicitCast, Start, Length, Word);}
+            return NewAliceToken(Tk_ExplicitCast, Start, Length + 1, Word);
+        }
+        case '?': 
+        {
+            if (Offset < 0) {__PopAlVector(AliceState -> Tokens); return NewAliceToken(Tk_CowardCast, Start, Length, Word);}
+            return NewAliceToken(Tk_CowardCast, Start, Length + 1, Word);
+        }
+        default: return NewAliceToken(Type, Start, Length, Word);
+    }
 }
 
 AliceToken* ReadString(LexerState* AliceState)
@@ -551,8 +575,9 @@ __AliceVector* AliceLexerTokenize(__AliceString* SourceCode)
         }
         Next(&LocalState, Offset);
     }
-    AliceToken* FinalNewLine = NewAliceToken(Tk_NewLine, LocalState.Pointer, 0, "");
-    __PushAlVector(Tokens, FinalNewLine);
+    // AliceToken* FinalNewLine = NewAliceToken(Tk_NewLine, LocalState.Pointer, 0, "");
+    // __PushAlVector(Tokens, FinalNewLine);
+    HandleLineAliceState(&LocalState);
     AliceToken* EndingToken = NewAliceToken(Tk_EndOfCode, LocalState.Pointer, 0, "__END_OF_CODE__");
     __PushAlVector(Tokens, EndingToken);
 	return Tokens;

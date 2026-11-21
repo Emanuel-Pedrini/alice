@@ -2,24 +2,22 @@
 #define _AliceTypesCLangH_
 
 #include "External/Libraries.h"
+#include "Headers/AliceMemoryManagement.h"
+#include "Headers/Lexer.h"
+#include "Headers/ForwardInclude.h"
+#include "Headers/ForwardInclude.h"
 
 #define True ((Bool)1)
 #define False ((Bool)0)
 #define __ForIn(V, I, S) for (int I = S ; I < V -> VSize; I++)
+#define __Max(A, B) ((A) > (B)) ? (A) : (B);
 #define __AlVector(V, E) __AliceVector* V = __NewAlVector(sizeof(E));
 
 typedef struct Struct__AliceListNode __AliceListNode;
-typedef unsigned short int Bool;
-typedef unsigned long long int Usize;
 typedef struct Struct__AliceListNode __AliceListNode;
 typedef struct Struct__AliceList __AliceList;
-typedef struct Struct__AliceString __AliceString;
-typedef struct Struct__AliceVector __AliceVector;
 typedef struct Struct__AliceRefCounted __AliceRefCounted;
-typedef struct Struct__AliceStack __AliceStack;
-
-typedef void __Void;
-typedef void* __VoidPointer;
+typedef struct Struct__AliceDictionary __AliceDictionary;
 
 struct Struct__AliceRefCounted
 {
@@ -44,6 +42,8 @@ __Void __MultiplePushAlVector(__AliceVector* __AlVector, Usize __Qtd, ...);
 __VoidPointer __PopAlVector(__AliceVector* __AlVector);
 __VoidPointer __GetAlVector(__AliceVector* __AlVector, Usize __Index);
 __AliceString* ConversionToString__AliceVector(__AliceVector* __AlVector);
+__Void __InsertAlVector(__AliceVector* __AlVector, __VoidPointer __Element, Usize __Index);
+__Void __HardInsertAlVector(__AliceVector* __AlVector, __VoidPointer __Element, Usize __Index);
 
 struct Struct__AliceString
 {
@@ -57,6 +57,7 @@ __AliceString* __NewAlString();
 __AliceString* __AlStringFrom(const char* __Source);
 __AliceString* __ConcatenateAlString(Usize __Qtd, ...);
 __Void __AppendAlString(__AliceString* __AlString, const char* __Source);
+Bool __AlStringCompare(__AliceString* __AlString, __AliceString* __AlStringSource);
 __AliceString* __JoinAlString(const char* __Separator, Usize __Qtd, ...);
 __AliceString* __FloatToString(double __N);
 __AliceString* __IntToString(long int __N);
@@ -96,4 +97,22 @@ __AliceStack* __NewAlStack(Usize __ElementSize);
 __Void __PushAlStack(__AliceStack* __Stack, __VoidPointer __Element);
 __VoidPointer __PopAlStack(__AliceStack* __Stack);
 __AliceVector* __MultiplePopAlStack(__AliceStack* __Stack, Usize __Quantity);
+__VoidPointer __LookAlStack(__AliceStack* __Stack);
+__VoidPointer __DeepLookAlStack(__AliceStack* __Stack, Usize __Depth);
+
+struct Struct__AliceDictionary
+{
+    __AliceVector* Keys; // Vector<Usize>*
+    __AliceVector* Values; // Vector<Generic>*
+    Usize Size;
+};
+
+__AliceDictionary* __NewAlDictionary(Usize __ValueSize);
+Usize __HashCodeFromString(__AliceString* __Key);
+Usize __IndexFromStringAlDictionary(__AliceDictionary* __AlDictionary, __AliceString* __Key);
+Bool __NewElementAlDictionary(__AliceDictionary* __AlDictionary, __AliceString* __Key, __VoidPointer __Value);
+__VoidPointer __GetAlDictionary(__AliceDictionary* __AlDictionary, __AliceString* __Key);
+__Void __MultipleNewElementsAlDictionary(__AliceDictionary* __AlDictionary, Usize __Qtd, ...);
+__AliceDictionary* __NewAlDictionaryWithElements(Usize __ValueSize, Usize __Qtd, ...);
+Bool __AlDictionaryContains(__AliceDictionary* __AlDictionary, __AliceString* __Key);
 #endif

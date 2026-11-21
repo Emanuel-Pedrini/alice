@@ -5,6 +5,7 @@
 #include "Headers/CStringUtils.h"
 #include "Headers/AliceMemoryManagement.h"
 #include "Headers/AliceDevelopmentTypes.h"
+#include "Headers/ForwardInclude.h"
 
 #define STRING_MARKER "\""
 #define REGISTER_MARKER "."
@@ -53,13 +54,13 @@ typedef enum Enum__AliceTokenType AliceTokenType;
 
 struct Struct__IndentationHandler
 {
-    __AliceVector* IndentationHistory;
+    __AliceStack* IndentationHistory;
     Usize LastIndentation;
     Usize ActualIndentation;
 };
 
 IndentationHandler* NewIndentationHandler();
-Usize IndentationChanged(IndentationHandler* IndHandler);
+Dsize IndentationChanged(IndentationHandler* IndHandler);
 
 struct Struct__LexerState {
     __AliceString* Code;
@@ -177,7 +178,9 @@ enum Enum__AliceTokenType {
     Tk_Range = 104,
     Tk_Tilde = 105,
     Tk_Struct = 106,
-
+    Tk_Anything = 107,
+    Tk_ExplicitCast = 108,
+    Tk_CowardCast = 109,
     Tk_EndOfCode 
 
 };
@@ -198,5 +201,6 @@ __AliceString* ConversionToString__AliceToken(AliceToken* InQ);
 __AliceVector* AliceLexerTokenize(__AliceString* SourceCode);
 Bool IsEqual(const char* Word, const char* Src);
 void Skip(LexerState* AliceState);
-
+AliceToken* ReadIndentifier(LexerState* AliceState);
+AliceTokenType HandleFreewordAliceState(LexerState* AliceState, const char* Word, uint32_t Length);
 #endif

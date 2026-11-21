@@ -3,6 +3,7 @@
 
 #include "Headers/AliceMemoryManagement.h"
 #include "Headers/AliceDevelopmentTypes.h"
+#include "Headers/ForwardInclude.h"
 
 typedef enum {
     C = 0,

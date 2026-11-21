@@ -1,3 +1,2 @@
-fn main() i32:
-    a (mut) : i32 = 89
-    b : i32 = 68*((-7-90)/(5+a))
+fn main() -> i32:
+    return 0

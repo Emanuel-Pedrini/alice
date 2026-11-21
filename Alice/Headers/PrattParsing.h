@@ -4,18 +4,19 @@
 #include "External/Libraries.h"
 #include "Headers/AliceDevelopmentTypes.h"
 #include "Headers/AliceMemoryManagement.h"
+#include "Headers/AliceTypes.h"
 #include "Headers/Lexer.h"
+#include "Headers/ForwardInclude.h"
 
 typedef struct Struct__BinaryOperator BinaryOperator;
 typedef struct Struct__UnaryOperator UnaryOperator;
-typedef struct Struct__FunctionCallOperator FunctionCallOperator;
+typedef struct Struct__FunctionCallOperator AcessCallOperator;
 typedef struct Struct__FieldAcessOperator FieldAcessOperator;
 
-typedef struct Struct__Expression Expression;
 typedef struct Struct__ExpressionReader ExpressionReader;
 typedef enum Enum__ExpressionType ExpressionType;
 
-Usize BindingPower(const AliceTokenType Operator);
+Usize BindingPower(ExpressionReader* Reader, const AliceTokenType Operator);
 Bool CanBeUnary(const AliceTokenType Operator);
 
 enum Enum__ExpressionType 
@@ -24,7 +25,7 @@ enum Enum__ExpressionType
     UNARY,
     BINARY,
     CALL,
-    FIELD
+    NONE
 };
 
 struct Struct__BinaryOperator
@@ -46,7 +47,7 @@ struct Struct__FunctionCallOperator
 {
     Expression* Callee;
     __AliceVector* Arguments;
-    __AliceString* (*ConversionToString)(FunctionCallOperator*);
+    __AliceString* (*ConversionToString)(AcessCallOperator*);
 };
 
 struct Struct__FieldAcessOperator
@@ -59,7 +60,7 @@ typedef union Union__OperandValue
     AliceToken* Literal;
     BinaryOperator* Binary;
     UnaryOperator* Unary;
-    FunctionCallOperator* Function;
+    AcessCallOperator* Function;
     FieldAcessOperator* Field;
 } OperandValue;
 
@@ -67,12 +68,14 @@ struct Struct__Expression
 {
     ExpressionType Type;
     OperandValue Value;
+    __AliceType* ResolvedType;
     __AliceString* (*ConversionToString)(Expression*);
 };
 
 struct  Struct__ExpressionReader
 {
     Usize Pointer;
+    AliceTokenType RightDelimiter;
     __AliceVector* ConstExpression;
 };
 
@@ -81,7 +84,7 @@ Expression* NewExpression(ExpressionType Type, OperandValue ConstOperand);
 
 UnaryOperator* NewUnaryOperator(AliceToken* Operator, Expression* Operand);
 BinaryOperator* NewBinaryOperator(AliceToken* Operator, Expression* Left, Expression* Right);
-FunctionCallOperator* NewFunctionCallOperator(Expression* Callee, __AliceVector* Arguments);
+AcessCallOperator* NewFunctionCallOperator(Expression* Callee, __AliceVector* Arguments);
 
 void NextExpressionReader(ExpressionReader* Reader);
 AliceToken* CurrentExpressionReader(ExpressionReader* Reader);
@@ -95,5 +98,5 @@ Expression* ParseExpression(ExpressionReader* Reader, Usize RightBindingPower);
 __AliceString* ConversionToString__BinaryOperator(BinaryOperator* InQ);
 __AliceString* ConversionToString__UnaryOperator(UnaryOperator* InQ);
 __AliceString* ConversionToString__Expression(Expression* InQ);
-__AliceString* ConversionToString__FunctionCallOperator(FunctionCallOperator* InQ);
+__AliceString* ConversionToString__FunctionCallOperator(AcessCallOperator* InQ);
 #endif

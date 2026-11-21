@@ -1,13 +1,11 @@
 #include "Headers/AliceDevelopmentTypes.h"
-#include "Headers/AliceMemoryManagement.h"
-#include "External/Libraries.h"
-#include "Headers/Lexer.h"
-#include "Headers/PrattParsing.h"
 
-#define __AlString_InitialCapacity 16
-#define __AlVector_StandardSize 16
+#define __AlString_InitialCapacity (16)
+#define __AlVector_StandardSize (16)
 #define __AlVector_SizeEquation(x) (((x + 1) * 3))
-#define __AlString_ConversionSize 64
+#define __AlString_ConversionSize (64)
+#define __AlDictionary_ResizeLimit (0.75)
+#define __AlDictionary_InitialCapacity (16)
 
 __Void __DropAlString(void* __AlString)
 {
@@ -169,6 +167,11 @@ __Void __AddCharAlString(__AliceString* __AlString, const char __Character)
     __AlString -> Chars[__AlString -> SSize] = '\0';
 }
 
+Bool __AlStringCompare(__AliceString* __AlString, __AliceString* __AlStringSource)
+{
+    if (strcmp(__AlString -> Chars, __AlStringSource -> Chars) == 0) return True;
+    return False;
+}
 __AliceVector* __AlVectorWithCapacity(Usize __ElementSize, Usize __Capacity)
 {
     __AliceVector* __AlVector = __AlAllocate(sizeof(__AliceVector));
@@ -183,7 +186,10 @@ __Void __ResizeAlVector(__AliceVector* __AlVector, Usize __NewSize)
 {
     if (__AlVector -> VSize > __NewSize) return;
     __QMark
-    __VoidPointer __NewElements = __AlReallocate(__AlVector -> VElements, __AlVector -> VSize * __AlVector -> ESize, __NewSize * __AlVector -> ESize);
+    __VoidPointer __NewElements = __AlReallocate(
+        __AlVector -> VElements, 
+        __AlVector -> VSize * __AlVector -> ESize, 
+        __NewSize * __AlVector -> ESize);
     if (__NewElements == NULL)
     {
         __QUnmark
@@ -235,6 +241,24 @@ __Void __MultiplePushAlVector(__AliceVector* __AlVector, Usize __Qtd, ...)
         __PushAlVector(__AlVector, va_arg(__Arguments, void*));
     }
     va_end(__Arguments);
+}
+
+__Void __InsertAlVector(__AliceVector* __AlVector, __VoidPointer __Element, Usize __Index)
+{
+    char* __Destination = (char*)__AlVector -> VElements + __Index * __AlVector -> ESize;
+    if (__Index >=  __AlVector -> VSize) 
+    {
+        Usize __NewSize = (Usize)(__Index * 2 + 1);
+        __ResizeAlVector(__AlVector, __NewSize);
+        __AlVector -> VSize = __NewSize;
+    }
+    memcpy(__Destination, __Element, __AlVector -> ESize);
+}
+
+__Void __HardInsertAlVector(__AliceVector* __AlVector, __VoidPointer __Element, Usize __Index)
+{
+    char* __Destination = (char*)__AlVector -> VElements + __Index * __AlVector -> ESize;
+    memcpy(__Destination, __Element, __AlVector -> ESize);
 }
 
 
@@ -311,4 +335,135 @@ __AliceVector* __MultiplePopAlStack(__AliceStack* __Stack, Usize __Quantity)
         __PushAlVector(__PoppedElements, __Element);
     }
     return __PoppedElements;
+}
+
+__VoidPointer __LookAlStack(__AliceStack* __Stack)
+{
+    return __GetAlVector(__Stack -> Elements, __Stack -> Pointer - 1);
+}
+
+__VoidPointer __DeepLookAlStack(__AliceStack* __Stack, Usize __Depth)
+{
+    Usize __Index = __Stack -> Pointer - __Depth < 0 ? 0 : __Stack -> Pointer - __Depth;
+    return __GetAlVector(__Stack -> Elements, (Usize)__Index);
+}
+
+__AliceDictionary* __NewAlDictionary(Usize __ValueSize)
+{
+    __AliceDictionary* __AlDictionary = __AlAllocate(sizeof(__AliceDictionary));
+    __AlDictionary -> Keys = __AlVectorWithCapacity(sizeof(__AliceString), __AlDictionary_InitialCapacity);
+    __AlDictionary -> Values = __AlVectorWithCapacity(__ValueSize, __AlDictionary_InitialCapacity);
+    __AlDictionary -> Size = __AlDictionary_InitialCapacity;
+    return __AlDictionary;
+}
+
+Usize __HashCodeFromString(__AliceString* __Key)
+{
+    Usize __KeySize = __Key -> SSize;
+    Usize __HashCode = 0;
+    for (Usize __Interator = 0;
+        __Interator < __Key -> SSize;
+        __Interator++)
+    {
+        Usize __CharacterN = __KeySize - __Interator;
+        uint8_t __Character = (uint8_t)__Key -> Chars[__Interator];
+        Usize __Hash = (Usize)(__Character * pow(31, __CharacterN));
+        __HashCode += __Hash;
+    }
+    return __HashCode;
+}
+
+Usize __IndexFromStringAlDictionary(__AliceDictionary* __AlDictionary, __AliceString* __Key)
+{
+    return __HashCodeFromString(__Key) % (__AlDictionary -> Keys -> VCapacity);
+}
+
+Bool __NewElementAlDictionary(__AliceDictionary* __AlDictionary, __AliceString* __Key, __VoidPointer __Value)
+{
+    if (__AlDictionary -> Size >= (Usize)(__AlDictionary -> Keys -> VCapacity * __AlDictionary_ResizeLimit))
+    {
+        __AlDictionary -> Size = 0;
+        __AliceVector* __OldKeys = __AlDictionary -> Keys;
+        __AliceVector* __OldValues = __AlDictionary -> Values;
+        __AliceVector* __NewKeys = __AlVectorWithCapacity(__OldKeys -> ESize, __AlDictionary -> Keys -> VCapacity * 2);
+        __AliceVector* __NewValues = __AlVectorWithCapacity(__OldValues -> ESize, __AlDictionary -> Values -> VCapacity * 2);
+        __AlDictionary -> Keys = __NewKeys;
+        __AlDictionary -> Values = __NewValues;
+
+        for (
+            Usize __Interator = 0;
+            __Interator < __OldKeys -> VCapacity;
+            __Interator++)
+        {
+            __AliceString* __OldKey = __GetAlVector(__OldKeys, __Interator);
+            __VoidPointer __OldValue = __GetAlVector(__OldValues, __Interator);
+            if (__OldKey != NULL && __OldKey -> Chars != NULL) 
+            {
+                __NewElementAlDictionary(__AlDictionary, __OldKey, __OldValue);
+            }
+        }
+    }
+    Usize __KVIndex = __IndexFromStringAlDictionary(__AlDictionary, __Key);
+    __AliceString* __ExistingKey = __GetAlVector(__AlDictionary -> Keys, __KVIndex);
+    Bool __Flag = False;
+    if (__ExistingKey -> Chars == NULL) __Flag = True;
+    else if (__AlStringCompare(__ExistingKey, __Key))
+    {
+        __KVIndex = (__KVIndex + 1) % __AlDictionary -> Keys -> VCapacity;
+        __HardInsertAlVector(__AlDictionary -> Values, __Value, __KVIndex);
+        return __Flag;
+    }
+    __Flag = True;
+    if (__Flag) 
+    {
+        __HardInsertAlVector(__AlDictionary -> Keys, __Key, __KVIndex);
+        __HardInsertAlVector(__AlDictionary -> Values, __Value, __KVIndex);
+        __AlDictionary -> Size += 1;
+    }
+    return __Flag;
+}
+
+__VoidPointer __GetAlDictionary(__AliceDictionary* __AlDictionary, __AliceString* __Key)
+{
+    Usize __Index = __IndexFromStringAlDictionary(__AlDictionary, __Key);
+    return __GetAlVector(__AlDictionary -> Values, __Index);
+}
+
+__Void __MultipleNewElementsAlDictionary(__AliceDictionary* __AlDictionary, Usize __Qtd, ...)
+{
+    if (!(__Qtd % 2 == 0)) return;
+    va_list __Arguments;
+    va_start(__Arguments, __Qtd);
+    for (Usize __Interator = 0; __Interator < __Qtd / 2; __Interator++)
+    {
+        __AliceString* __Key = va_arg(__Arguments, __AliceString*);
+        __VoidPointer* __Value = va_arg(__Arguments, __VoidPointer);
+        __NewElementAlDictionary(__AlDictionary, __Key, __Value);
+    }
+    va_end(__Arguments);
+}
+
+__AliceDictionary* __NewAlDictionaryWithElements(Usize __ValueSize, Usize __Qtd, ...)
+{
+    __AliceDictionary* __AlDictionary = __NewAlDictionary(__ValueSize);
+    if (!(__Qtd % 2 == 0)) return NULL;
+    va_list __Arguments;
+    va_start(__Arguments, __Qtd);
+    for (Usize __Interator = 0; __Interator < __Qtd / 2; __Interator++)
+    {
+        __AliceString* __Key = va_arg(__Arguments, __AliceString*);
+        __VoidPointer* __Value = va_arg(__Arguments, __VoidPointer);
+        __NewElementAlDictionary(__AlDictionary, __Key, __Value);
+    }
+    va_end(__Arguments);
+    return __AlDictionary;
+}
+
+Bool __AlDictionaryContains(__AliceDictionary* __AlDictionary, __AliceString* __Key)
+{
+    Usize __KVIndex = __IndexFromStringAlDictionary(__AlDictionary, __Key);
+    __AliceString* __ExistingKey = __GetAlVector(__AlDictionary -> Keys, __KVIndex);
+    if (__ExistingKey -> Chars == NULL) 
+        return False;
+    return True; 
 }

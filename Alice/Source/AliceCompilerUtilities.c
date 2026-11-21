@@ -1,22 +1,22 @@
 #include "Compiler/AliceCompilerUtilities.h"
 
-CodeBlock* CBlock()
+__AliceCodeBlock* CBlock()
 {
     CBLOCK(B)
-    __AliceVector* V = __NewAlVector(sizeof(CodeLine));
+    __AliceVector* V = __NewAlVector(sizeof(__AliceCodeLine));
     B -> HasFormat = False;
     B -> CodeLines = V;
     return B;
 }
 
-Bool CBlockAppend(CodeBlock* B, CodeLine* L)
+Bool CBlockAppend(__AliceCodeBlock* B, __AliceCodeLine* L)
 {
     __PushAlVector(B -> CodeLines, L);
     return True;
 }
 
 
-CodeLine* CLine(const char* Content)
+__AliceCodeLine* CLine(const char* Content)
 {
     CLINE(L)
     L -> Content = __AlStringFrom(Content);
@@ -26,20 +26,20 @@ CodeLine* CLine(const char* Content)
 CodeWritter* CWritter(const char* TargetPath)
 {
     CWRITTER(W)
-    __AliceVector* V = __NewAlVector(sizeof(CodeLine));
+    __AliceVector* V = __NewAlVector(sizeof(__AliceCodeLine));
     W -> TargetPath = __AlStringFrom(TargetPath);
     W -> Pointer = (Usize) 0;
     W -> WriteContent = V;
     return W;
 }
 
-Bool CWriteLine(CodeWritter* W, CodeLine* L)
+Bool CWriteLine(CodeWritter* W, __AliceCodeLine* L)
 {
     CLINE(LA)
     LA -> Content = __ConcatenateAlString(2, L -> Content, __AlStringFrom("\n"));
     FileWrite((W -> TargetPath) -> Chars, (LA -> Content) -> Chars, "a");
 }
-Bool CWriteBlock(CodeWritter* W, CodeBlock* B)
+Bool CWriteBlock(CodeWritter* W, __AliceCodeBlock* B)
 {
     for (int I = 0 ; I < B -> CodeLines -> VSize ; I++)
     {
@@ -52,7 +52,7 @@ Bool CWrite(CodeWritter* W)
     __AliceString* S = __AlStringFrom("");
     for (int I = 0 ; I < W -> WriteContent -> VSize; I++)
     {
-        CodeLine* L = (CodeLine*)__GetAlVector(W -> WriteContent, I);
+        __AliceCodeLine* L = (__AliceCodeLine*)__GetAlVector(W -> WriteContent, I);
         __AppendAlString(S, L -> Content -> Chars);
     }
     int R = FileWrite((W -> TargetPath) -> Chars, S -> Chars, "w");
@@ -60,7 +60,7 @@ Bool CWrite(CodeWritter* W)
     return True;
 }
 
-Bool CWritterAppendLine(CodeWritter* W, CodeLine* L)
+Bool CWritterAppendLine(CodeWritter* W, __AliceCodeLine* L)
 {
     CLINE(LA)
     LA -> Content = __AlStringFrom("\n");
@@ -69,34 +69,34 @@ Bool CWritterAppendLine(CodeWritter* W, CodeLine* L)
     return True;
 }
 
-Bool CWriterAppendBlock(CodeWritter* W, CodeBlock* B)
+Bool CWriterAppendBlock(CodeWritter* W, __AliceCodeBlock* B)
 {
     if (B -> HasFormat) CWritterAppendLine(W, CLine(B -> S -> Content -> Chars));   
     for (int I = 0 ; I < B -> CodeLines -> VSize ; I++)
     {
-        CodeLine* L = ((CodeLine*)__GetAlVector(B -> CodeLines, I));
+        __AliceCodeLine* L = ((__AliceCodeLine*)__GetAlVector(B -> CodeLines, I));
         CWritterAppendLine(W, L);
     }
     if (B -> HasFormat) CWritterAppendLine(W, CLine(B -> E -> Content -> Chars)); 
 }
 
-CodeFormat* CFormat(const char* Content)
+__AliceCodeFormat* CFormat(const char* Content)
 {
     CFORMAT(F)
     F -> Content = __AlStringFrom(Content);
     return F;      
 }
 
-Bool CBlockFormat(CodeBlock* B, CodeFormat* S, CodeFormat* E)
+Bool CBlockFormat(__AliceCodeBlock* B, __AliceCodeFormat* S, __AliceCodeFormat* E)
 {
     B -> HasFormat = True;
     B -> S = S;
     B -> E = E;
 }
 
-CodeBlock* CBlockFormatted(const char* Open, const char* Close)
+__AliceCodeBlock* CBlockFormatted(const char* Open, const char* Close)
 {
-    CodeBlock* B = CBlock();
+    __AliceCodeBlock* B = CBlock();
     QFORMAT(F1, Open)
     QFORMAT(F2, Close)
     CBlockFormat(B, F1, F2);

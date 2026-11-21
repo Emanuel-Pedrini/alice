@@ -6,23 +6,35 @@
 #include "Headers/PrattParsing.h"
 #include "Headers/Lexer.h"
 #include "Headers/AliceTypes.h"
+#include "Headers/ForwardInclude.h"
+
+#define MEMBER_DELIMITER Tk_Colon
+#define ARGUMENT_DELIMITER Tk_Comma
+#define ASSOCIATIVE_DELIMITER Tk_Equal
+#define POINTER_DELIMITER Tk_Commercial
 
 typedef struct Struct__ParserState ParserState;
 typedef struct Struct__ParserNode ParserNode;
-typedef enum Enum__ParserNodeType ParserNodeType;
-typedef enum Enum__FlagType FlagType;
-
-typedef struct Struct__FunctionDeclaration FunctionDeclaration;
-typedef struct Struct__VariableDeclaration VariableDeclaration;
-typedef struct Struct__MemberDeclaration MemberDeclaration;
-typedef struct Struct__FlagDeclaration FlagDeclaration;
-typedef struct Struct__MethodCallDeclaration MethodCallDeclaration;
-typedef struct Struct__FunctionCallDeclaration FunctionCallDeclaration;
-typedef struct Struct__CallArgumentsDeclaration CallArgumentsDeclaration;
-typedef struct Struct__MemberGroupDeclaration MemberGroupDeclaration;
-typedef struct Struct__FieldAcessDeclaration FieldAcessDeclaration;
+typedef struct Struct__ParserStateContext ParserStateContext;
 
 typedef union Union__ParserNodeDeclaration ParserNodeDeclaration;
+
+// Some i'll say this is a level 999 witchery and i need to be killed but you can't stop me >:)
+#define __Declaration(Name) typedef struct Struct__##Name##Declaration Name##Declaration;
+__Declaration(FunctionHead)
+__Declaration(Body)
+__Declaration(FunctionImpl)
+__Declaration(VariableAssign)
+__Declaration(Member)
+__Declaration(Flag)
+__Declaration(MethodCall)
+__Declaration(FunctionCall)
+__Declaration(CallArguments)
+__Declaration(MemberGroup)
+__Declaration(FieldAcess)
+__Declaration(VariableReassign)
+__Declaration(Return)
+
 
 enum Enum__ParserNodeType 
 {
@@ -51,13 +63,28 @@ struct Struct__FlagDeclaration
     CallArgumentsDeclaration* CallArguments; 
 };
 
+struct Struct__ReturnDeclaration
+{
+    Expression* Value;
+};
 
-struct Struct__FunctionDeclaration
+struct Struct__FunctionHeadDeclaration
 {
     __AliceString* Name;
     __AliceType* ReturnType;
-    __AliceVector* Flags; // Vector<FlagDeclaration>*
-    MemberGroupDeclaration* Arguments; // Vector<MemberDeclaration>*
+    __AliceVector* Flags;
+    MemberGroupDeclaration* Arguments; 
+};
+
+struct Struct__BodyDeclaration 
+{
+    __AliceVector* BodyStatements; // Vector<ParserNode*>*
+};
+
+struct Struct__FunctionImplDeclaration 
+{
+    FunctionHeadDeclaration* Head;
+    BodyDeclaration* Body;
 };
 
 struct Struct__FunctionCallDeclaration
@@ -66,10 +93,11 @@ struct Struct__FunctionCallDeclaration
     CallArgumentsDeclaration* CallArguments;
 };
 
-struct Struct__VariableDeclaration
+struct Struct__VariableAssignDeclaration
 {
     MemberDeclaration* Member;
     __AliceVector* Flags; // Vector<FlagDeclaration>*
+    Expression* Value;
 };
 
 struct Struct__MethodCallDeclaration
@@ -86,11 +114,26 @@ struct  Struct__FieldAcessDeclaration
 
 union Union__ParserNodeDeclaration
 {
-    FunctionDeclaration FieldFunction;
-    VariableDeclaration FieldVariable;
+    FunctionHeadDeclaration FieldFunctionHead;
+    BodyDeclaration FieldBody;
+    FunctionImplDeclaration FieldFunctionImpl;
+    VariableAssignDeclaration FieldVariableAssign;
+    MemberDeclaration FieldMember;
+    ReturnDeclaration FieldReturn;
     Expression FieldExpression;
 };
 
+typedef enum
+{
+    AsFunctionHead = 1, 
+    AsBody = 2,
+    AsFunctionImpl = 3,
+    AsVariableAssign = 4,
+    AsVariableReassign = 5,
+    AsExpression = 6,
+    AsMember = 7,
+    AsReturn = 8
+} ParserNodeType;
 
 struct Struct__ParserNode {
     ParserNodeType Type;
@@ -98,17 +141,38 @@ struct Struct__ParserNode {
 };
 
 // Parser Tools
+typedef enum Enum__ParserStateContextFlag 
+{
+    NullFlag
+} ParserStateContextFlag;
+
+struct Struct__ParserStateContext 
+{
+    __AliceString* Name;
+    AliceToken* AsToken;
+    ParserStateContextFlag AsFlag;
+};
+
 struct Struct__ParserState 
 {
+    ParserStateContext* Context;
     __AliceVector* InputTokens;
+    ExpressionReader* Reader;
     Usize Pointer;
     AliceToken* Actual;
     __AliceVector* GeneratedNodes;
     __AliceStack* TokenStack;
 };
-ParserState* NewParserState(__AliceVector* Tokens);
 
-__AliceVector* Parsenize(ParserState* AliceState, AliceManagementObject* ManagementObject);
-ParserNodeDeclaration*(*FunctionByType(AliceTokenType T))(ParserState*);
+ParserState* NewParserState(__AliceVector* Tokens);
+ParserNode* NewParserNode(ParserNodeType Type, ParserNodeDeclaration Declaration);
+ParserNode* Parsenize(ParserState* AliceState, AliceManagementObject* ManagementObject);
+ParserNode* ParsenizeMember(ParserState* AliceState);
+__AliceType* ParsenizeAliceType(ParserState* AliceState);
+__AliceType* ParsenizeAliceTypeMember(ParserState* AliceState);
+Expression* ParsenizeExpression(ParserState* AliceState);
+ParserNode*(*FunctionByType(AliceTokenType T))(ParserState*);
+ParserNode* ParsenizeBody(ParserState* AliceState);
+ParserNode* ParsenizeDeclaration(ParserState* AliceState);
 
 #endif

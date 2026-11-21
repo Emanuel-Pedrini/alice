@@ -11,9 +11,9 @@ Expression* NewExpression(ExpressionType Type, OperandValue ConstOperand)
     return ExpressionN;
 }
 
-FunctionCallOperator* NewFunctionCallOperator(Expression* Callee, __AliceVector* Arguments)
+AcessCallOperator* NewFunctionCallOperator(Expression* Callee, __AliceVector* Arguments)
 {
-    FunctionCallOperator* OperatorF = __AlAllocate(sizeof(FunctionCallOperator));
+    AcessCallOperator* OperatorF = __AlAllocate(sizeof(AcessCallOperator));
     OperatorF -> Callee = Callee;
     OperatorF -> Arguments = Arguments;
     OperatorF -> ConversionToString = ConversionToString__FunctionCallOperator;
@@ -49,10 +49,10 @@ ExpressionReader* NewExpressionReader()
     return ExpressionR;
 }
 
-__AliceString* ConversionToString__FunctionCallOperator(FunctionCallOperator* InQ)
+__AliceString* ConversionToString__FunctionCallOperator(AcessCallOperator* InQ)
 {
     __AliceString* Result = __AlStringFrom("");
-    __AppendAlString(Result, "Func( ");
+    __AppendAlString(Result, "AcessObject( ");
     Expression* Expr = InQ -> Callee;
     __AppendAlString(Result, Expr -> ConversionToString(Expr) -> Chars);
     __AliceVector* Args = InQ -> Arguments;
@@ -123,8 +123,8 @@ __AliceString* ConversionToString__Expression(Expression* InQ)
         }
         case CALL:
         {
-            FunctionCallOperator* FuncOp = InQ -> Value.Function;
-            return FuncOp -> ConversionToString(FuncOp);
+            AcessCallOperator* AcessOp = InQ -> Value.Function;
+            return AcessOp -> ConversionToString(AcessOp);
         }
         default:
             return __AlStringFrom("Null");
@@ -159,11 +159,15 @@ AliceToken* PeekExpressionReader(ExpressionReader* Reader, int Offset)
 }
 
 #define BindingOperator(T, P) case T: return BASE_EXPRESSION_VALUE * P;
-Usize BindingPower(const AliceTokenType Operator)
+Usize BindingPower(ExpressionReader* Reader, const AliceTokenType Operator)
 {
+    if (Operator == Reader -> RightDelimiter) return BASE_EXPRESSION_VALUE * 0;
     switch (Operator)
     {
         BindingOperator(Tk_LeftParenthesis, 128)
+        BindingOperator(Tk_LeftKeys, 128)
+        BindingOperator(Tk_LeftBrace, 128)
+        BindingOperator(Tk_RightBrace, 0)
         BindingOperator(Tk_RightParenthesis, 0)
 
         // Boolean operators
@@ -195,14 +199,41 @@ Bool CanBeUnary(const AliceTokenType Operator)
         UnaryOperator(Tk_Minus)
         UnaryOperator(Tk_Plus)
         UnaryOperator(Tk_Not)
+        UnaryOperator(Tk_ExplicitCast)
+        UnaryOperator(Tk_CowardCast)
         default: return False;
     }   
 }
+
+Bool CanBeAcess(const AliceTokenType Operator)
+{
+    switch (Operator)
+    {
+        UnaryOperator(Tk_LeftParenthesis)
+        UnaryOperator(Tk_LeftBrace)
+        UnaryOperator(Tk_LeftKeys)
+        default: return False;
+    }   
+}
+
+Bool AcessCloser(const AliceTokenType Opener)
+{
+    switch (Opener)
+    {
+        case Tk_LeftParenthesis: return Tk_RightParenthesis;
+        case Tk_LeftBrace: return Tk_RightBrace;
+        case Tk_LeftKeys: return Tk_RightKeys;
+        default: return Tk_Illegal;
+    }
+}
+
 Expression* CallDenotation(ExpressionReader* Reader, Expression* Callee)
 {
     __AliceVector* Arguments = __NewAlVector(sizeof(Expression*));
     AliceToken* Next = PeekExpressionReader(Reader, 0);
-    if (Next != NULL && Next -> Type != Tk_RightParenthesis)
+    AliceToken* Opener = PeekExpressionReader(Reader, -1);
+    AliceTokenType Closer = AcessCloser(Opener -> Type);
+    if (Next != NULL && Next -> Type != Closer)
     {
         while (True)
         {
@@ -218,11 +249,11 @@ Expression* CallDenotation(ExpressionReader* Reader, Expression* Callee)
         }
     }
     AliceToken* Encloser = PeekExpressionReader(Reader, 0);
-    if (Encloser == NULL || Encloser -> Type != Tk_RightParenthesis) return NULL;
+    if (Encloser == NULL || Encloser -> Type != Closer) return NULL;
     ConsumeExpressionReader(Reader);
     OperandValue P;
-    FunctionCallOperator* FuncOp = NewFunctionCallOperator(Callee, Arguments);
-    P.Function = FuncOp;
+    AcessCallOperator* AcessOp = NewFunctionCallOperator(Callee, Arguments);
+    P.Function = AcessOp;
     return NewExpression(CALL, P);
 }
 
@@ -231,7 +262,7 @@ Expression* NullDenotation(ExpressionReader* Reader, AliceToken* Left)
     AliceTokenType T = Left -> Type;
     if (CanBeUnary(T))
     {
-        Expression* ParsedExpression = ParseExpression(Reader, BindingPower(T));
+        Expression* ParsedExpression = ParseExpression(Reader, BindingPower(Reader, T));
         OperandValue P;
         UnaryOperator* UnOp = NewUnaryOperator(Left, ParsedExpression);
         P.Unary = UnOp;
@@ -255,9 +286,9 @@ Expression* NullDenotation(ExpressionReader* Reader, AliceToken* Left)
 Expression* LeftDenotation(ExpressionReader* Reader, Expression* Left, Expression* Right)
 {
     AliceTokenType BindType = Right -> Value.Literal -> Type;
-    Usize BindPower = BindingPower(BindType);
+    Usize BindPower = BindingPower(Reader, BindType);
     if (BindType == Tk_UpArrow) BindPower--;
-    if (BindType == Tk_LeftParenthesis) return CallDenotation(Reader, Left);
+    if (CanBeAcess(BindType)) return CallDenotation(Reader, Left);
     BinaryOperator* BinOp = NewBinaryOperator(
         Right -> Value.Literal, 
         Left, 
@@ -278,7 +309,7 @@ Expression* ParseExpression(ExpressionReader* Reader, Usize RightBindingPower)
         ConsumeExpressionReader(Reader)
     );
     AliceToken* Next = PeekExpressionReader(Reader, 0);
-    while (Next != NULL && BindingPower(Next -> Type) > RightBindingPower)
+    while (Next != NULL && BindingPower(Reader, Next -> Type) > RightBindingPower)
     {
         OperandValue P;
         P.Literal = ConsumeExpressionReader(Reader);

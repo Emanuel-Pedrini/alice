@@ -9,4 +9,5 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include <math.h>
+#include <time.h>
 #endif

@@ -3,6 +3,7 @@
 
 #include "Headers/AliceDevelopmentTypes.h"
 #include "Headers/AliceMemoryManagement.h"
+#include "Headers/ForwardInclude.h"
 
 typedef struct {
     char* Code;
