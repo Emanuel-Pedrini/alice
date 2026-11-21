@@ -54,11 +54,11 @@ struct Struct__AliceString
 };
 
 __AliceString* __NewAlString();
-__AliceString* __AlStringFrom(const char* __Source);
+__AliceString* __AlStringFrom(__CString __Source);
 __AliceString* __ConcatenateAlString(Usize __Qtd, ...);
-__Void __AppendAlString(__AliceString* __AlString, const char* __Source);
+__Void __AppendAlString(__AliceString* __AlString, __CString __Source);
 Bool __AlStringCompare(__AliceString* __AlString, __AliceString* __AlStringSource);
-__AliceString* __JoinAlString(const char* __Separator, Usize __Qtd, ...);
+__AliceString* __JoinAlString(__CString __Separator, Usize __Qtd, ...);
 __AliceString* __FloatToString(double __N);
 __AliceString* __IntToString(long int __N);
 double __StringToDouble(__AliceString* __AlString);

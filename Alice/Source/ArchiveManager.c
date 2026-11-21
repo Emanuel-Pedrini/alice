@@ -59,7 +59,7 @@ AliceCodeObject* OpenAliceFile(char* ArchivePath)
     return NewCodeObject;
 }
 
-int FileWrite(char* Path, const char* Content, const char* Mode) 
+int FileWrite(char* Path, __CString Content, __CString Mode) 
 {
     FILE* File = fopen(Path, Mode);
     if (File == NULL) {

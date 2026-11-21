@@ -199,8 +199,8 @@ __AliceString* ConversionToString__AliceToken(AliceToken* InQ);
 
 
 __AliceVector* AliceLexerTokenize(__AliceString* SourceCode);
-Bool IsEqual(const char* Word, const char* Src);
+Bool IsEqual(__CString Word, __CString Src);
 void Skip(LexerState* AliceState);
 AliceToken* ReadIndentifier(LexerState* AliceState);
-AliceTokenType HandleFreewordAliceState(LexerState* AliceState, const char* Word, uint32_t Length);
+AliceTokenType HandleFreewordAliceState(LexerState* AliceState, __CString Word, uint32_t Length);
 #endif

@@ -380,7 +380,7 @@ AliceToken* HandleSymbolAliceState(LexerState* AliceState)
     return NewAliceToken(Type, Start, Length, Word);
 }
 
-AliceTokenType HandleFreewordAliceState(LexerState* AliceState, const char* Word, uint32_t Length) 
+AliceTokenType HandleFreewordAliceState(LexerState* AliceState, __CString Word, uint32_t Length) 
 {
 	IfKeyword(RETURN_KEYWORD, Tk_Return)
 	Keyword(DO_KEYWORD, Tk_Do)

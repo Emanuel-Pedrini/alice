@@ -58,7 +58,7 @@ char* File(char* FullPath) {
     return Substring(FullPath, x + 1, StringSize);
 }
 
-Bool StartsWith(const char* Source, const char* Prefix)
+Bool StartsWith(__CString Source, __CString Prefix)
 {
     Usize PreffixSize = strlen(Prefix);
     Usize stringSize = strlen(Source);
@@ -74,7 +74,7 @@ Bool StartsWith(const char* Source, const char* Prefix)
     return False;
 }
 
-Bool EndsWith(const char* Source, const char* Suffix)
+Bool EndsWith(__CString Source, __CString Suffix)
 {
     Usize PreffixSize = strlen(Suffix);
     Usize StringSize = strlen(Source);
@@ -87,7 +87,7 @@ Bool EndsWith(const char* Source, const char* Suffix)
     }
     return False;
 }
-Bool IsEqual(const char* Word, const char* Source) {
+Bool IsEqual(__CString Word, __CString Source) {
     if (strcmp(Word, Source) == 0) 
     {
         return True;
@@ -95,7 +95,7 @@ Bool IsEqual(const char* Word, const char* Source) {
     return False;
 }
 
-Bool IsCaseEqual(const char* Word, const char* Source) {
+Bool IsCaseEqual(__CString Word, __CString Source) {
     if (strcasecmp(Word, Source) == 0) 
     {
         return True;
@@ -103,7 +103,7 @@ Bool IsCaseEqual(const char* Word, const char* Source) {
     return False;
 }
 
-char* Substring(const char* Source, Usize Start, Usize End)
+char* Substring(__CString Source, Usize Start, Usize End)
 {
     int PretendedSize = (End - Start) + 1;
     if (PretendedSize <= 0) {

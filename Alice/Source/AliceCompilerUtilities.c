@@ -16,14 +16,14 @@ Bool CBlockAppend(__AliceCodeBlock* B, __AliceCodeLine* L)
 }
 
 
-__AliceCodeLine* CLine(const char* Content)
+__AliceCodeLine* CLine(__CString Content)
 {
     CLINE(L)
     L -> Content = __AlStringFrom(Content);
     return L;
 }
 
-CodeWritter* CWritter(const char* TargetPath)
+CodeWritter* CWritter(__CString TargetPath)
 {
     CWRITTER(W)
     __AliceVector* V = __NewAlVector(sizeof(__AliceCodeLine));
@@ -80,7 +80,7 @@ Bool CWriterAppendBlock(CodeWritter* W, __AliceCodeBlock* B)
     if (B -> HasFormat) CWritterAppendLine(W, CLine(B -> E -> Content -> Chars)); 
 }
 
-__AliceCodeFormat* CFormat(const char* Content)
+__AliceCodeFormat* CFormat(__CString Content)
 {
     CFORMAT(F)
     F -> Content = __AlStringFrom(Content);
@@ -94,7 +94,7 @@ Bool CBlockFormat(__AliceCodeBlock* B, __AliceCodeFormat* S, __AliceCodeFormat* 
     B -> E = E;
 }
 
-__AliceCodeBlock* CBlockFormatted(const char* Open, const char* Close)
+__AliceCodeBlock* CBlockFormatted(__CString Open, __CString Close)
 {
     __AliceCodeBlock* B = CBlock();
     QFORMAT(F1, Open)

@@ -30,10 +30,11 @@ ScopeContext* NewScopeContext(Bool Exists, ScopeObject* Object)
     return TemporaryBuffer;
 }
 
-ScopeObject* NewScopeObject(__AliceType* Type)
+ScopeObject* NewScopeObject(__AliceType* Type, LocalSymbol* Symbol)
 {
     ScopeObject* TemporaryBuffer = __AlAllocate(sizeof(ScopeObject));
     TemporaryBuffer -> Type = Type;
+    TemporaryBuffer -> Symbol = Symbol;
     return TemporaryBuffer;
 }
 
@@ -88,6 +89,13 @@ __Void UnstackReturnType(SemanticAnalyserState* AliceState)
     __PopAlStack(AliceState -> ReturnStack);
 }
 
+LocalSymbol* NewLocalSymbol(__AliceString* Name, __AliceType* Type)
+{
+    LocalSymbol* Symbol = __AlAllocate(sizeof(LocalSymbol));
+    Symbol -> Name = Name;
+    Symbol -> Type = Type;
+    return Symbol;
+}
 
 SemanticAnalysis* AnalyseSemanticAnalyserState(SemanticAnalyserState* AliceState)
 {
@@ -119,14 +127,16 @@ static __Void AnalyseFunction(SemanticAnalyserState* AliceState, FunctionImplDec
     __AliceString* Name = N -> Head -> Name;
     __AliceType* Type = N -> Head -> ReturnType;
 
-    StackScopeObject(AliceState, Name, NewScopeObject(NULL));
+    StackScopeObject(AliceState, Name, NewScopeObject(NULL, NULL));
     StackScopeDictionary(AliceState);
     StackReturnType(AliceState, Type);
 
     __ForIn(Args, I, 0)
     {
         MemberDeclaration* Member = ((MemberDeclaration*)__GetAlVector(Args, I));
-        StackScopeObject(AliceState, Member -> Name, NewScopeObject(Member -> Type));
+        LocalSymbol* Sym = NewLocalSymbol(Member -> Name, Member -> Type);
+        Member -> Symbol = Sym;
+        StackScopeObject(AliceState, Member -> Name, NewScopeObject(Member -> Type, Sym));
     }
 
     AnalyseStatements(AliceState, Body);
@@ -172,9 +182,9 @@ static __AliceType* AnalyseExpression(SemanticAnalyserState* AliceState, Express
                     ScopeContext* Cont = LookupSemanticAnalyserState(AliceState, __AlStringFrom(N -> Value.Literal -> Literal));
                     if (Cont -> Exists)
                     {
-                        __AliceType* Type = Cont -> Object -> Type;
-                        N -> ResolvedType = Type;
-                        return Type;
+                        N -> Symbol = Cont -> Object -> Symbol;
+                        N -> ResolvedType = Cont -> Object -> Type;
+                        return N -> ResolvedType;
                     }
                     RaiseErrorSemanticAnalyserState(AliceState);
                     return __NewAlGenericType("null", AlType_Null, NULL);
@@ -199,10 +209,9 @@ static __AliceType* AnalyseExpression(SemanticAnalyserState* AliceState, Express
             Bool BooleanOperand = __IsBooleanOperator(N -> Value.Binary -> Operator -> Type);
             __AliceType* LeftType = AnalyseExpression(AliceState, N -> Value.Binary -> Left);
             __AliceType* RightType = AnalyseExpression(AliceState, N -> Value.Binary -> Right);
-            __AliceType* InferedType;
+            __AliceType* InferedType = LeftType;
             if (BooleanOperand) InferedType = __NewAlGenericType("bool", AlType_Boolean, NULL);
-            if (__CompareAliceType(LeftType, RightType)) InferedType = LeftType;
-            RaiseErrorSemanticAnalyserState(AliceState); 
+            else if (!__CompareAliceType(LeftType, RightType)) RaiseErrorSemanticAnalyserState(AliceState);
             N -> ResolvedType = InferedType;
             return LeftType;
         }

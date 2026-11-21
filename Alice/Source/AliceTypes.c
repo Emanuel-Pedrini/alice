@@ -1,25 +1,6 @@
 #include "Headers/AliceTypes.h"
 #include "External/Libraries.h"
 
-typedef enum 
-{
-    RTTAlType,
-    RTTExpression,
-    RTTNonRecursive
-} RecursiveTypeKind;
-
-typedef union Union__RecursiveType
-{
-    __AliceType* Type;
-    Expression* Expression;
-} RecursiveType;
-
-typedef struct Struct__AlRTFlag
-{
-    RecursiveTypeKind Kind;
-    RecursiveType Type;
-} AlRTFlag;
-
 Bool __IsBooleanOperator(AliceTokenType Type)
 {
     switch (Type)
@@ -35,24 +16,21 @@ Bool __IsBooleanOperator(AliceTokenType Type)
     }
 }
 
-__AliceType* __NewAlGenericType(const char* __Literal, AliceTypeKind __Kind, __AliceType* __RecursiveType)
+__AliceType* __NewAlGenericType(__CString __Literal, AliceTypeKind __Kind, __AliceType* __InternType)
 {
     __AliceType* __AlType = __AlAllocate(sizeof(__AliceType));
     __AlType -> Kind = __Kind;
     __AlType -> Literal = __Literal;
     __AlType -> ConversionToString = ConversionToString__AliceType;
-    __AlType -> RecursiveType = __RecursiveType;
-    __AlType -> InternalFlags = __NewAlVector(sizeof(AlRTFlag));
-    __AlType -> Flagged = False;
-    __AlType -> Sized = False;
-    __AlType -> SizeExpression = NULL;
+    if (__Kind = AlType_Generic)
+    {
+        __AliceTypeInformation* __Info = __AlAllocate(sizeof(__AliceTypeInformation));
+        __Info -> Generic.ElementType = __InternType;
+        __Info -> Generic.SizeExpressed = False;
+        __Info -> Generic.SizeExpression = NULL;
+        __AlType -> Information = __Info;
+    }
     return __AlType;
-}
-
-__Void __SetAlGenericTypeFlag(__AliceType* __AlType, __AliceVector* __Flags)
-{
-    __AlType -> InternalFlags = __Flags;
-    __AlType -> Flagged = True;
 }
 
 __AliceString* ConversionToString__AliceType(__AliceType* __AlType)
@@ -61,19 +39,7 @@ __AliceString* ConversionToString__AliceType(__AliceType* __AlType)
     else if (__AlType -> Kind == AlType_Pointer) 
     {
         __AliceString* __Result = __AlStringFrom("Ptr<( ");
-        __AppendAlString(__Result, ConversionToString__AliceType(__AlType -> RecursiveType) -> Chars);
-        __AppendAlString(__Result, " )>");
-        return __Result;
-    }
-    else if (__AlType -> Kind == AlType_Generic)
-    {
-        __AliceString* __Result = __AlStringFrom("Generic<( ");
-        __AppendAlString(__Result, ConversionToString__AliceType(__AlType -> RecursiveType) -> Chars);
-        if (__AlType -> Sized) 
-        {
-            __AppendAlString(__Result, " , ");
-            __AppendAlString(__Result, __AlType -> SizeExpression -> ConversionToString(__AlType -> SizeExpression) -> Chars);
-        }
+        __AppendAlString(__Result, ConversionToString__AliceType(__AlType -> Information->Pointer.ElementType) -> Chars);
         __AppendAlString(__Result, " )>");
         return __Result;
     }
@@ -87,7 +53,7 @@ Bool __CompareAliceType(__AliceType* Type, __AliceType* OtherType)
     AliceTypeKind T = Type -> Kind;
     if (Type -> Kind != OtherType -> Kind) return False;
     if (T == AlType_Userdata) return (strcmp(Type -> Literal, OtherType -> Literal) == 0);
-    if (T == AlType_Generic) return __CompareAliceType(Type -> RecursiveType, OtherType -> RecursiveType);
+    if (T == AlType_Generic) return __CompareAliceType(Type -> Information->Generic.ElementType, OtherType -> Information->Generic.ElementType);
     return True;
 }
 

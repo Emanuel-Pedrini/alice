@@ -7,6 +7,7 @@
 #include "Compiler/AliceCompilerUtilities.h"
 #include "Headers/AliceTypes.h"
 #include "Headers/Parser.h"
+#include "Headers/AIR.h"
 #include "Utilities/AliceDevArraySortsTools.h"
 #include "Headers/PrattParsing.h"
 #include "Headers/SemanticAnalysis.h"
@@ -55,6 +56,8 @@ Bool ReadAndDecode(int argc, char* argv[])
     ParserNode* AliceProgramAST = Parsenize(AliceParserState, BigGirl);
     SemanticAnalyserState* AliceSemanticAnalyser = NewSemanticAnalyserState(AliceProgramAST);
     SemanticAnalysis* AliceSemantic = AnalyseSemanticAnalyserState(AliceSemanticAnalyser);
+    AliceIRBuilder* AliceBuilder = NewAlIRBuilder();
+    BuildIRFromTypedASTIRBuilder(AliceBuilder, AliceProgramAST);
     return True;
 }
 

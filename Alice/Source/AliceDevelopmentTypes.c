@@ -23,7 +23,7 @@ __AliceString* __NewAlString()
     return __AlString;
 }
 
-__AliceString* __AlStringFrom(const char* __Source)
+__AliceString* __AlStringFrom(__CString __Source)
 {
     __AliceString* __AlString = __NewAlString();
     __AppendAlString(__AlString, __Source);
@@ -44,7 +44,7 @@ __AliceString* __ConcatenateAlString(Usize __Qtd, ...)
     return __AlString;
 }
 
-__AliceString* __JoinAlString(const char* __Separator, Usize __Qtd, ...)
+__AliceString* __JoinAlString(__CString __Separator, Usize __Qtd, ...)
 {
     va_list __Arguments;
     va_start(__Arguments, __Qtd);
@@ -103,7 +103,7 @@ double __StringToDouble(__AliceString* __AlString)
     return 0; 
 }
 
-__Void __AppendAlString(__AliceString* __AlString, const char* __Source)
+__Void __AppendAlString(__AliceString* __AlString, __CString __Source)
 {
     Usize __SourceLen = strlen(__Source);
     Usize __PretendedSize = (__AlString -> SSize + __SourceLen) + 1;

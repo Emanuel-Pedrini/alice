@@ -13,29 +13,6 @@
 #define ASSOCIATIVE_DELIMITER Tk_Equal
 #define POINTER_DELIMITER Tk_Commercial
 
-typedef struct Struct__ParserState ParserState;
-typedef struct Struct__ParserNode ParserNode;
-typedef struct Struct__ParserStateContext ParserStateContext;
-
-typedef union Union__ParserNodeDeclaration ParserNodeDeclaration;
-
-// Some i'll say this is a level 999 witchery and i need to be killed but you can't stop me >:)
-#define __Declaration(Name) typedef struct Struct__##Name##Declaration Name##Declaration;
-__Declaration(FunctionHead)
-__Declaration(Body)
-__Declaration(FunctionImpl)
-__Declaration(VariableAssign)
-__Declaration(Member)
-__Declaration(Flag)
-__Declaration(MethodCall)
-__Declaration(FunctionCall)
-__Declaration(CallArguments)
-__Declaration(MemberGroup)
-__Declaration(FieldAcess)
-__Declaration(VariableReassign)
-__Declaration(Return)
-
-
 enum Enum__ParserNodeType 
 {
     NodeFunction
@@ -45,6 +22,7 @@ struct Struct__MemberDeclaration // A Common type of declaration
 {
     __AliceString* Name;
     __AliceType* Type;
+    LocalSymbol* Symbol;
 };
 
 struct Struct__MemberGroupDeclaration

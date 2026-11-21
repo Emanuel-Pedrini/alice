@@ -69,6 +69,7 @@ struct Struct__Expression
     ExpressionType Type;
     OperandValue Value;
     __AliceType* ResolvedType;
+    LocalSymbol* Symbol;
     __AliceString* (*ConversionToString)(Expression*);
 };
 

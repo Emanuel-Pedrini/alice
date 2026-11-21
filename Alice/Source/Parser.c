@@ -120,8 +120,8 @@ __AliceType* ParsenizeAliceType(ParserState* AliceState)
                 AliceState -> Reader -> RightDelimiter = Tk_RightArrow;
                 Expression* Expr = ParsenizeExpression(AliceState);
                 printf("\n%s", Expr -> ConversionToString(Expr) -> Chars);
-                G -> SizeExpression = Expr;
-                G -> Sized = True;
+                G -> Information -> Generic.SizeExpression = Expr;
+                G -> Information -> Generic.SizeExpressed = True;
                 AliceState -> Reader -> RightDelimiter = Tk_Anything;
             }
             else 

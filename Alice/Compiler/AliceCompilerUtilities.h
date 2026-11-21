@@ -14,7 +14,7 @@ typedef struct StructCodeLine
 } __AliceCodeLine;
 
 #define CLINE(L) __AliceCodeLine* L = __AlAllocate(sizeof(__AliceCodeLine));
-__AliceCodeLine* CLine(const char* Content);
+__AliceCodeLine* CLine(__CString Content);
 
 typedef struct StructCodeFormat
 {
@@ -22,7 +22,7 @@ typedef struct StructCodeFormat
 } __AliceCodeFormat;
 #define CFORMAT(F) __AliceCodeFormat* F = __AlAllocate(sizeof(__AliceCodeFormat));
 #define QFORMAT(F, C) __AliceCodeFormat* F = CFormat(C);
-__AliceCodeFormat* CFormat(const char* Content);
+__AliceCodeFormat* CFormat(__CString Content);
 
 typedef struct StructCodeBlock
 {
@@ -45,12 +45,12 @@ typedef struct StructCodeWritter
 } CodeWritter;
 
 #define CWRITTER(W) CodeWritter* W = __AlAllocate(sizeof(CodeWritter));
-CodeWritter* CWritter(const char* TargetPath);
+CodeWritter* CWritter(__CString TargetPath);
 Bool CWriteLine(CodeWritter* W, __AliceCodeLine* L);
 Bool CWriteBlock(CodeWritter* W, __AliceCodeBlock* B);
 Bool CWrite(CodeWritter* W);
 Bool CWriterAppendBlock(CodeWritter* W, __AliceCodeBlock* B);
 Bool CWritterAppendLine(CodeWritter* W, __AliceCodeLine* L);
-__AliceCodeBlock* CBlockFormatted(const char* Open, const char* Close);
+__AliceCodeBlock* CBlockFormatted(__CString Open, __CString Close);
 
 #endif

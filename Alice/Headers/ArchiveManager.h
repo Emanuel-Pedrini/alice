@@ -8,7 +8,7 @@
 
 char* OpenFile(char* ArchivePath, Usize Capacity);
 AliceCodeObject* OpenAliceFile(char* ArchivePath);
-int FileWrite(char* Path, const char* Content, const char* Mode);
+int FileWrite(char* Path, __CString Content, __CString Mode);
 int BinaryWrite(char* Path, unsigned int Content);
 
 #endif
