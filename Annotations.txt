@@ -1,0 +1,5 @@
+Module
+    Function
+        Entry
+            Inst Return **IRValue <(i32)> Const 0, NULL**
+
