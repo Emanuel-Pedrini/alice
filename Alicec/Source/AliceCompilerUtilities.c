@@ -18,6 +18,7 @@ AliceCodeContext* NewCodeContext(AliceCodeContextKind Kind, __VoidPointer Conten
         case AlContext_Line: { CContext->Content.Line = ((AliceCodeLine*)Content); break;}
         case AlContext_Block: { CContext->Content.Block = ((AliceCodeBlock*)Content); break;}
     }
+    return CContext;
 }
 
 AliceCodeLine* NewCodeLine(CString Literal)
@@ -108,6 +109,12 @@ __AliceString* GetCodeByContext(AliceCodeWritter* Writter, AliceCodeContext* Con
 
 Bool CodeWrite(AliceCodeWritter* Writter)
 {
+    __AliceString* StringWrite = CodeGenerateCodeWritter(Writter);
+    AliceFileWrite(Writter -> TargetPath -> Chars, StringWrite -> Chars, "w");
+}
+
+__AliceString* CodeGenerateCodeWritter(AliceCodeWritter* Writter)
+{
     __AliceString* StringWrite = __AlStringFrom("");
     for (
         Usize Interator = 0;
@@ -122,5 +129,18 @@ Bool CodeWrite(AliceCodeWritter* Writter)
                 NewCodeContext(AlContext_Block, (AliceCodeBlock*)__GetAlVector(Writter -> WriteContent, Interator))
         ) -> Chars);
     }
-    FileWrite(Writter -> TargetPath -> Chars, StringWrite -> Chars, "w");
+    return StringWrite;
+}
+
+AliceCompilerResult* NewAliceCompilerResult(Bool Ok, __AliceString* Literal)
+{
+    AliceCompilerResult* CResult = __AlAllocate(sizeof(AliceCompilerResult));
+    CResult -> Ok = Ok;
+    CResult -> RLiteral = Literal;
+    return CResult; 
+}
+
+Bool GetCompilationWasSucessfull(AliceCompilerResult* Result)
+{
+    return (Result != NULL) && (Result -> Ok) && (Result -> RLiteral != NULL) && (Result -> RLiteral -> SCapacity > 0);
 }

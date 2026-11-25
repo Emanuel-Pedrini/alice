@@ -23,6 +23,7 @@ AliceCompilationAttributes* NewAliceCompilationAttributes()
     CAttributes -> Paths = __NewAlVector(sizeof(__AliceString*));
     CAttributes -> Specifications = __NewAlVector(sizeof(Placeholder));
     CAttributes -> Flags = __NewAlVector(sizeof(CString));
+    CAttributes -> FlagValues = __NewAlDictionary(sizeof(__AliceString*));
     CAttributes -> TargetArchive = NULL;
     return CAttributes;
 }
@@ -42,13 +43,43 @@ __Void ReadCompilationTargetPathCReader(AliceCompilationAttributesReader* Attrib
 
 __Void ReadCompilationFlagCReader(AliceCompilationAttributesReader* AttributesReader, CString Argument)
 {
-    __PushAlVector(AttributesReader -> Attributes -> Flags, CStringWithoutInitialSymbols(Argument));
+    char* FlagTotal = CStringWithoutInitialSymbols(Argument);
+    int Size = strlen(FlagTotal);
+    int i = 0;
+    for (; FlagTotal[i] != '=' && FlagTotal[i] != '\0'; i++){}
+    
+    __AliceString* FlagName = __AlStringFrom(Substring(FlagTotal, 0, i));
+    __AliceString* FlagValue = __AlStringFrom(FlagTotal[i] == '=' ? (FlagTotal + i + 1) : "");
+
+    if (__AlStringCompare(FlagName, __AlStringFrom("out"))) AttributesReader -> Attributes -> TargetArchive = FlagValue;
+
+    __PushAlVector(AttributesReader -> Attributes -> Flags, FlagName);
+    __NewElementAlDictionary(AttributesReader -> Attributes -> FlagValues, FlagName, FlagValue);
 }
 
-__Void ReadNewAliceSourceFile(AliceCompilationAttributesReader* AttributesReader, CString Argument)
+__Void ReadAliceSourceFile(AliceCompilationAttributesReader* AttributesReader, CString Argument)
 {
     __AliceString* NewPath = __AlStringFrom(Argument);
     __PushAlVector(AttributesReader -> Attributes -> Paths, NewPath);
+}
+__Void ReadMultipleAliceSourceFile(AliceCompilationAttributesReader* AttributesReader, CString Argument)
+{
+    int SuffixSize = strlen(__AliceMultipleIncludeSuffix);
+    int ArgSize = strlen(Argument);
+    int Offset = 1;
+    char Last = Argument[ArgSize - (SuffixSize + 1)];
+    Bool IsSeparator = ((Last == '\\') || (Last == '/'));
+    if (Last && IsSeparator)
+    {
+        char* OnlyPath = Substring(Argument, 0, ArgSize - (SuffixSize + Offset));
+        __AliceVector* Buffer = __NewAlVector(sizeof(__AliceString*));
+        ListDirectory(OnlyPath, ".al", Buffer);
+        for (int i = 0;i < Buffer -> VSize;i++)
+        {
+            char* SourceFile = ((__AliceString*)__GetAlVector(Buffer, i)) -> Chars;
+            ReadAliceSourceFile(AttributesReader, SourceFile);
+        }
+    }
 }
 
 AliceCompilationAttributes* ReadCompilationAttributes(AliceCompilationAttributesReader* AttributesReader, const int NumberOfArguments, CString* Arguments)
@@ -60,21 +91,17 @@ AliceCompilationAttributes* ReadCompilationAttributes(AliceCompilationAttributes
         Interator++)
     {
         CString Argument = AttributesReader -> Arguments[Interator];
-        if (CStringStartsWith(Argument, __AliceTargetCompilationPathPrefix))
-        {
-            ReadCompilationTargetPathCReader(AttributesReader, Argument);
-        }
-        else if (CStringStartsWith(Argument, __AliceCompilationFlagPrefix))
+        if (CStringStartsWith(Argument, __AliceCompilationFlagPrefix))
         {
             ReadCompilationFlagCReader(AttributesReader, Argument);
         }
+        else if (CStringEndsWith(Argument, __AliceMultipleIncludeSuffix))
+        {
+            ReadMultipleAliceSourceFile(AttributesReader, Argument);
+        }
         else if (CStringEndsWith(Argument, __AliceFileSuffix))
         {
-            ReadNewAliceSourceFile(AttributesReader, Argument);
-        }
-        else 
-        {
-            Interator++;
+            ReadAliceSourceFile(AttributesReader, Argument);
         }
     }
     return AttributesReader -> Attributes;

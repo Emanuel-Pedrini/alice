@@ -530,7 +530,7 @@ AliceToken* ReadArchiveMarker(LexerState* AliceState)
     return NewAliceToken(Tk_ArchiveMarker, Start, Length, Word);
 }
 
-__AliceVector* AliceLexerTokenize(__AliceString* SourceCode) 
+__AliceVector* AliceLexerTokenize(AliceManagementObjectRef ManagementObject) 
 {
 	__AliceVector* Tokens = __NewAlVector(sizeof(AliceToken));
     LexerState LocalState;
@@ -538,7 +538,7 @@ __AliceVector* AliceLexerTokenize(__AliceString* SourceCode)
     LocalState.Pointer = 0;
     LocalState.Line = 1;
     LocalState.Depth = 0;
-    LocalState.Code = SourceCode;
+    LocalState.Code = ManagementObject -> SourceCode;
     LocalState.Tokens = Tokens;
     LocalState.IndHandler = NewIndentationHandler();
 

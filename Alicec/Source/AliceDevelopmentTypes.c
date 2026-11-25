@@ -465,5 +465,6 @@ Bool __AlDictionaryContains(__AliceDictionary* __AlDictionary, __AliceString* __
     __AliceString* __ExistingKey = __GetAlVector(__AlDictionary -> Keys, __KVIndex);
     if (__ExistingKey -> Chars == NULL) 
         return False;
-    return True; 
+    if (__AlStringCompare(__ExistingKey, __Key))
+        return True; 
 }

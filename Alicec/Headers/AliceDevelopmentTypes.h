@@ -12,6 +12,8 @@
 #define __ForIn(V, I, S) for (int I = S ; I < V -> VSize; I++)
 #define __Max(A, B) ((A) > (B)) ? (A) : (B);
 #define __AlVector(V, E) __AliceVector* V = __NewAlVector(sizeof(E));
+static int DebugCount = 0;
+#define DEBUG(MSG) fprintf(stderr, "[DEBUG(%d)] %s\n", DebugCount, #MSG);DebugCount++;
 
 typedef struct Struct__AliceListNode __AliceListNode;
 typedef struct Struct__AliceListNode __AliceListNode;

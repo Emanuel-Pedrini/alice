@@ -198,7 +198,7 @@ AliceToken* NewAliceToken(AliceTokenType Type, Usize Start, Usize Length, char* 
 __AliceString* ConversionToString__AliceToken(AliceToken* InQ);
 
 
-__AliceVector* AliceLexerTokenize(__AliceString* SourceCode);
+__AliceVector* AliceLexerTokenize(AliceManagementObjectRef ManagementObject);
 Bool IsEqual(CString Word, CString Src);
 void Skip(LexerState* AliceState);
 AliceToken* ReadIndentifier(LexerState* AliceState);

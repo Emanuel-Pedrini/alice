@@ -12,6 +12,11 @@
 #define ARGUMENT_DELIMITER Tk_Comma
 #define ASSOCIATIVE_DELIMITER Tk_Equal
 #define POINTER_DELIMITER Tk_Commercial
+#define TWO_TOKEN_DECLR(T1, T2) if (PeekTokenParserState(AliceState, 0) -> Type == T1 && PeekTokenParserState(AliceState, 1) -> Type == T2)
+#define TREE_TOKEN_DECLR(T1, T2, T3) if (PeekTokenParserState(AliceState, 0) -> Type == T1 && PeekTokenParserState(AliceState, 1) -> Type == T2 && PeekTokenParserState(AliceState, 2) -> Type == T3)
+#define FOUR_TOKEN_DECLR(T1, T2, T3, T4) if (PeekTokenParserState(AliceState, 0) -> Type == T1 && PeekTokenParserState(AliceState, 1) -> Type == T2 && PeekTokenParserState(AliceState, 2) -> Type == T3 && PeekTokenParserState(AliceState, 3) -> Type == T4)
+
+
 
 enum Enum__ParserNodeType 
 {
@@ -56,7 +61,7 @@ struct Struct__FunctionHeadDeclaration
 
 struct Struct__BodyDeclaration 
 {
-    __AliceVector* BodyStatements; // Vector<ParserNode*>*
+    __AliceVector* BodyStatements;
 };
 
 struct Struct__FunctionImplDeclaration 
@@ -74,7 +79,7 @@ struct Struct__FunctionCallDeclaration
 struct Struct__VariableAssignDeclaration
 {
     MemberDeclaration* Member;
-    __AliceVector* Flags; // Vector<FlagDeclaration>*
+    __AliceVector* Flags;
     Expression* Value;
 };
 

@@ -6,7 +6,8 @@
 #include "Headers/ForwardInclude.h"
 
 #define __AliceFileSuffix ".al"
-#define __AliceTargetCompilationPathPrefix "*"
+#define __AliceTargetCompilationPathPrefix "--out="
+#define __AliceMultipleIncludeSuffix "*.al"
 #define __AliceCompilationFlagPrefix "--"
 
 struct Struct__AliceCompilationAttributesReader
@@ -23,6 +24,7 @@ struct Struct__AliceCompilationAttributes
     __AliceVector* Specifications;
     __AliceString* TargetArchive;
     __AliceVector* Flags;
+    __AliceDictionary* FlagValues;
     __AliceVector* Paths;
 };
 
@@ -34,7 +36,8 @@ AliceCompilationAttributes* ReadCompilationAttributes(AliceCompilationAttributes
 
 Bool ReadCompilationPaths(AliceCompilationAttributesReader* AttributesReader);
 
-__Void ReadNewAliceSourceFile(AliceCompilationAttributesReader* AttributesReader, CString Argument);
+__Void ReadAliceSourceFile(AliceCompilationAttributesReader* AttributesReader, CString Argument);
+__Void ReadMultipleAliceSourceFile(AliceCompilationAttributesReader* AttributesReader, CString Argument);
 __Void ReadCompilationFlagCReader(AliceCompilationAttributesReader* AttributesReader, CString Argument);
 __Void ReadCompilationTargetPathCReader(AliceCompilationAttributesReader* AttributesReader, CString Argument);
 

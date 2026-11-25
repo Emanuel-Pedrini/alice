@@ -1,23 +1,23 @@
 #include "Headers/SemanticAnalysis.h"
 
-#define RETURN_ANALYSER_MACRO(D) ____RETURN___TYPE___MACRO___EXPRESSI0N__##D
+
 
 SemanticAnalyserState* NewSemanticAnalyserState(ParserNode* AST)
 {
     SemanticAnalyserState* AnalyserS = __AlAllocate(sizeof(SemanticAnalyserState));
-    AnalyserS -> ScopeStack = __NewAlStack(sizeof(__AliceDictionary));
+    AnalyserS -> ScopeStack = __NewAlStack(sizeof(__AliceDictionary*));
     AnalyserS -> AST = AST;
-    AnalyserS -> ReturnStack = __NewAlStack(sizeof(__AliceType));
+    AnalyserS -> ReturnStack = __NewAlStack(sizeof(__AliceType*));
     AnalyserS -> Context = NULL;
     return AnalyserS;
 }
 
-SemanticAnalysis* CollectGlobalTypesSemanticAnalyserState(SemanticAnalyserState* AliceState)
+SemanticAnalysisResult* CollectGlobalTypesSemanticAnalyserState(SemanticAnalyserState* AliceState)
 {
 
 }
 
-SemanticAnalysis* CollectGlobalFunctionsSemanticAnalyserState(SemanticAnalyserState* AliceState)
+SemanticAnalysisResult* CollectGlobalFunctionsSemanticAnalyserState(SemanticAnalyserState* AliceState)
 {
 
 }
@@ -45,13 +45,12 @@ static __Void RaiseErrorSemanticAnalyserState(SemanticAnalyserState* AliceState)
 
 ScopeContext* LookupSemanticAnalyserState(SemanticAnalyserState* AliceState, __AliceString* ScopeObjectName)
 {
-
     Usize Interator = AliceState -> ScopeStack -> Elements -> VSize;
     while (Interator > 0) 
     {
-        Interator--;
-        __AliceDictionary* D = ((__AliceDictionary*)__DeepLookAlStack(AliceState -> ScopeStack, Interator));
+        __AliceDictionary* D = (*(__AliceDictionary**)__DeepLookAlStack(AliceState -> ScopeStack, Interator));
         if (__AlDictionaryContains(D, ScopeObjectName)) return NewScopeContext(True, __GetAlDictionary(D, ScopeObjectName));
+        Interator--;
     }
     return NewScopeContext(False, NULL);
 }
@@ -64,7 +63,7 @@ __Void SearchAllSemanticAnalyserState(SemanticAnalyserState* AliceState)
 __Void StackScopeDictionary(SemanticAnalyserState* AliceState)
 {
     __AliceDictionary* NewScope = __NewAlDictionary(sizeof(ScopeObject));
-    __PushAlStack(AliceState -> ScopeStack, NewScope);
+    __PushAlStack(AliceState -> ScopeStack, &NewScope);
 }
 
 __Void UnstackScopeDictionary(SemanticAnalyserState* AliceState)
@@ -74,14 +73,14 @@ __Void UnstackScopeDictionary(SemanticAnalyserState* AliceState)
 
 __Void StackScopeObject(SemanticAnalyserState* AliceState, __AliceString* Name, ScopeObject* Object)
 {
-    __AliceDictionary* D = ((__AliceDictionary*)__LookAlStack(AliceState -> ScopeStack));
+    __AliceDictionary* D = (*(__AliceDictionary**)__LookAlStack(AliceState -> ScopeStack));
     __NewElementAlDictionary(D, Name, Object);
 }
 
 
 __Void StackReturnType(SemanticAnalyserState* AliceState, __AliceType* Type)
 {
-    __PushAlStack(AliceState -> ReturnStack, Type);
+    __PushAlStack(AliceState -> ReturnStack, &Type);
 }
 
 __Void UnstackReturnType(SemanticAnalyserState* AliceState)
@@ -98,11 +97,19 @@ LocalSymbol* NewLocalSymbol(__AliceString* Name, __AliceType* Type)
     return Symbol;
 }
 
-SemanticAnalysis* AnalyseSemanticAnalyserState(SemanticAnalyserState* AliceState)
+SemanticAnalysisResultRef NewSemanticAnalysisResult(SemanticAnalyserState* AliceState)
+{
+    SemanticAnalysisResultRef SemaAnalysis = __AlAllocate(sizeof(SemanticAnalysisResult));
+    SemaAnalysis -> Ok = True;
+    return SemaAnalysis;
+}
+
+SemanticAnalysisResultRef AnalyseSemanticAnalyserState(SemanticAnalyserState* AliceState)
 {
     StackScopeDictionary(AliceState);
     AnalyseNode(AliceState, AliceState -> AST);
     UnstackScopeDictionary(AliceState);
+    return NewSemanticAnalysisResult(AliceState);
 }
 
 static __Void AnalyseStatements(SemanticAnalyserState* AliceState, BodyDeclaration* N)
@@ -132,9 +139,9 @@ static __Void AnalyseFunction(SemanticAnalyserState* AliceState, FunctionImplDec
     StackScopeDictionary(AliceState);
     StackReturnType(AliceState, Type);
 
-    __ForIn(Args, I, 0)
+    for (Usize Interator = 0; Interator < Args -> VSize; Interator++)
     {
-        MemberDeclaration* Member = ((MemberDeclaration*)__GetAlVector(Args, I));
+        MemberDeclaration* Member = ((MemberDeclaration*)__GetAlVector(Args, Interator));
         LocalSymbol* Sym = NewLocalSymbol(Member -> Name, Member -> Type);
         Member -> Symbol = Sym;
         StackScopeObject(AliceState, Member -> Name, NewScopeObject(Member -> Type, Sym));
@@ -147,7 +154,7 @@ static __Void AnalyseFunction(SemanticAnalyserState* AliceState, FunctionImplDec
 
 static __Void AnalyseReturn(SemanticAnalyserState* AliceState, ReturnDeclaration* N)
 {
-    __AliceType* ExpectedType = ((__AliceType*)__LookAlStack(AliceState -> ReturnStack));
+    __AliceType* ExpectedType = (*(__AliceType**)__LookAlStack(AliceState -> ReturnStack));
     if (N -> Value == NULL)
     {
         if (ExpectedType != NULL) RaiseErrorSemanticAnalyserState(AliceState);
@@ -172,15 +179,17 @@ static __AliceType* AnalyseExpression(SemanticAnalyserState* AliceState, Express
             switch (N -> Value.Literal->Type)
             {
                 case Tk_Number:
+                    N -> ResolvedType = __StandardIntegerType;
+                    return N -> ResolvedType;
                 case Tk_Decimal:
                 {
-                    __AliceType* Fallback = __NewAlGenericType("i32", AlType_i32, NULL);
-                    N -> ResolvedType = Fallback;
-                    return Fallback;
+                    N -> ResolvedType = __StandardFloatType;
+                    return N -> ResolvedType;
                 }
                 case Tk_Indentifier:
                 {
                     ScopeContext* Cont = LookupSemanticAnalyserState(AliceState, __AlStringFrom(N -> Value.Literal -> Literal));
+
                     if (Cont -> Exists)
                     {
                         N -> Symbol = Cont -> Object -> Symbol;
@@ -188,20 +197,34 @@ static __AliceType* AnalyseExpression(SemanticAnalyserState* AliceState, Express
                         return N -> ResolvedType;
                     }
                     RaiseErrorSemanticAnalyserState(AliceState);
-                    return __NewAlGenericType("null", AlType_Null, NULL);
+                    return &GlobalNull;
                 }
                 default:
                 {
                     RaiseErrorSemanticAnalyserState(AliceState);
-                    return __NewAlGenericType("null", AlType_Null, NULL);
+                    return &GlobalNull;
                 }
             }
         }
         case UNARY:
         {
-            Bool BooleanOperand = __IsBooleanOperator(N -> Value.Unary -> Operator -> Type);
-            __AliceType* UnaryOpr = AnalyseExpression(AliceState, N -> Value.Unary->Operand);
-            if (BooleanOperand) UnaryOpr = __NewAlGenericType("bool", AlType_Boolean, NULL);
+            AliceTokenType OprType = N -> Value.Unary -> Operator -> Type;
+            Bool BooleanOperand = __IsBooleanOperator(OprType);
+            switch (OprType)
+            {
+                case Tk_Minus:
+                    break;
+                case Tk_Plus:
+                    break;
+                case Tk_ExplicitCast:
+                    break;
+                case Tk_CowardCast:
+                    break;
+                default:
+                    break;
+            }
+            __AliceType* UnaryOpr = AnalyseExpression(AliceState, N -> Value.Unary -> Operand);
+            if (BooleanOperand) UnaryOpr = &GlobalBoolean;
             N -> ResolvedType = UnaryOpr;
             return UnaryOpr;
         }
@@ -211,22 +234,27 @@ static __AliceType* AnalyseExpression(SemanticAnalyserState* AliceState, Express
             __AliceType* LeftType = AnalyseExpression(AliceState, N -> Value.Binary -> Left);
             __AliceType* RightType = AnalyseExpression(AliceState, N -> Value.Binary -> Right);
             __AliceType* InferedType = LeftType;
-            if (BooleanOperand) InferedType = __NewAlGenericType("bool", AlType_Boolean, NULL);
+            if (BooleanOperand) InferedType = &GlobalBoolean;
             else if (!__CompareAliceType(LeftType, RightType)) RaiseErrorSemanticAnalyserState(AliceState);
             N -> ResolvedType = InferedType;
-            return LeftType;
+            return InferedType;
         }
         default:
             RaiseErrorSemanticAnalyserState(AliceState);
-            __AliceType* Fallback = __NewAlGenericType("null", AlType_Null, NULL);
-            N -> ResolvedType = Fallback;
-            return Fallback;
+            return &GlobalNull;
     }
 }
 
 static __Void AnalyseVariableAssign(SemanticAnalyserState* AliceState, VariableAssignDeclaration* N)
 {
-
+    MemberDeclaration* Member = N -> Member;
+    if (N -> Value != NULL)
+    { 
+        StackScopeObject(AliceState, N -> Member -> Name, NewScopeObject(N -> Member -> Type, N -> Member -> Symbol));
+        // if (__CastingType(N -> Member -> Type, AnalyseExpression(AliceState, N -> Value)))
+        // {
+        // }
+    }
 }
 
 static __Void AnalyseMember(SemanticAnalyserState* AliceState, MemberDeclaration* N)
@@ -238,11 +266,40 @@ static __Void AnalyseNode(SemanticAnalyserState* AliceState, ParserNode* N)
 {
     switch (N -> Type)
     {
-        case AsBody: {AnalyseBody(AliceState, &(N -> Declaration.FieldBody));break;}
-        case AsFunctionImpl:{AnalyseFunction(AliceState, &(N -> Declaration.FieldFunctionImpl)); break;}
-        case AsReturn:{AnalyseReturn(AliceState, &(N->Declaration.FieldReturn));break;}
-        case AsExpression:{AnalyseExpression(AliceState, &(N->Declaration.FieldExpression));break;}
-        case AsVariableAssign:{AnalyseVariableAssign(AliceState, &(N->Declaration.FieldVariableAssign));break;}
-        case AsMember:{AnalyseMember(AliceState, &(N -> Declaration.FieldMember));break;}
+        case AsBody: 
+        {
+            AnalyseBody(AliceState, &(N -> Declaration.FieldBody));
+            break;
+        }
+        case AsFunctionImpl:
+        {
+            AnalyseFunction(AliceState, &(N -> Declaration.FieldFunctionImpl)); 
+            break;
+        }
+        case AsReturn:
+        {
+            AnalyseReturn(AliceState, &(N->Declaration.FieldReturn));
+            break;
+        }
+        case AsExpression:
+        {
+            AnalyseExpression(AliceState, &(N->Declaration.FieldExpression));
+            break;
+        }
+        case AsVariableAssign:
+        {
+            AnalyseVariableAssign(AliceState, &(N->Declaration.FieldVariableAssign));
+            break;
+        }
+        case AsMember:
+        {
+            AnalyseMember(AliceState, &(N -> Declaration.FieldMember));
+            break;
+        }
     }
+}
+
+Bool GetSemanticAnalysisWasSucessfull(SemanticAnalysisResultRef Result)
+{
+    return (Result != NULL && Result -> Ok);
 }

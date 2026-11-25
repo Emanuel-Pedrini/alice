@@ -4,7 +4,7 @@ __AliceAllocationArena* __MainArena = NULL;
 __AliceAllocationArenaMark __MainMarkStack[__ALICE_MAIN_MARK_STACK_SIZE];
 Usize __MainMarkStackPointer = 0;
 
-#define __MainAreaStandardSize (64 * 1024)
+#define __MainAreaStandardSize (1024 << 6)
 
 __AliceAllocationArena* __NewAllocationArena(Usize Size)
 {
@@ -42,6 +42,7 @@ __VoidPointer __AllocateAlArena(__AliceAllocationArena* __Arena, Usize __ObjectS
         __Head = __NewHead;
     }
     __VoidPointer __Pointer = __Head -> Data + __Head -> Size;
+    memset(__Pointer, 0, __ObjectSize);
     __Head -> Size += __ObjectSize;
     return __Pointer;
 }

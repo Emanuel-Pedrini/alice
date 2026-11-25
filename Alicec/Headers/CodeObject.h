@@ -11,10 +11,10 @@ typedef struct {
     char* Name;
 } AliceCodeObject;
 
-typedef struct Struct__AliceManagementObject {
+struct Struct__AliceManagementObject {
     __AliceVector* CodeObjects;
     __AliceString* SourceCode;
-} AliceManagementObject;
+};
 
 void IncludeManagementObject(AliceManagementObject* Girl, AliceCodeObject* CodeObject);
 AliceManagementObject* NewAliceManagementObject();

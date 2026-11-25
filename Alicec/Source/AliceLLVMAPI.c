@@ -23,16 +23,16 @@ int GenerateObjectFileFromLLVMIR(CString LLVMIR, CString OutputPath, CString Pas
     if (LLVMParseIRInContext(AliceLLVMContext, AliceLLVMMemoryBuffer, &AliceLLVMModule, &Error)) 
     {
         fprintf(stderr, "LLVM Error, %s!", Error);
-        goto ___LabelProcessDone;
+        goto AliceLLVMProcessDone;
     }
 
-    if (LLVMVerifyModule(AliceLLVMModule, LLVMPrintMessageAction, NULL)) goto ___LabelProcessDone;
+    if (LLVMVerifyModule(AliceLLVMModule, LLVMPrintMessageAction, NULL)) goto AliceLLVMProcessDone;
     TargetTriple = LLVMGetDefaultTargetTriple();
 
     if (LLVMGetTargetFromTriple(TargetTriple, &AliceLLVMTarget, &Error)) 
     {
         fprintf(stderr, "LLVM Error, %s!", Error);
-        goto ___LabelProcessDone;
+        goto AliceLLVMProcessDone;
     }
 
     if (!SpecificCpu) AliceLLVMTargetMachine = LLVMCreateTargetMachine(AliceLLVMTarget, TargetTriple, "generic", "", LLVMCodeGenLevelDefault, LLVMRelocPIC, LLVMCodeModelDefault);
@@ -49,18 +49,18 @@ int GenerateObjectFileFromLLVMIR(CString LLVMIR, CString OutputPath, CString Pas
     {
         char* AliceLLVMErrorMessage = LLVMGetErrorMessage(AliceLLVMError);
         LLVMDisposeErrorMessage(AliceLLVMErrorMessage);
-        goto ___LabelProcessDone;
+        goto AliceLLVMProcessDone;
     }
 
     if (LLVMTargetMachineEmitToFile(AliceLLVMTargetMachine, AliceLLVMModule, (char*)OutputPath, LLVMObjectFile, &Error))
     {
         fprintf(stderr, "LLVM Error, %s!", Error); 
-        goto ___LabelProcessDone;
+        goto AliceLLVMProcessDone;
     }
 
     Record = 0;
 
-    ___LabelProcessDone:
+    AliceLLVMProcessDone:
         if (Error) LLVMDisposeMessage(Error);
         if (TargetTriple) LLVMDisposeMessage(TargetTriple);
         if (AliceLLVMPassBuilderOptions) LLVMDisposePassBuilderOptions(AliceLLVMPassBuilderOptions);
@@ -74,13 +74,16 @@ int GenerateExecutableFromObjectFile(CString LLVMIR, CString OutputPath, CString
 {
     char ObjectFilePath[1024];
     snprintf(ObjectFilePath, sizeof(ObjectFilePath), "%s.o", OutputPath);
-    if (GenerateObjectFileFromLLVMIR(LLVMIR, OutputPath, Passes, SpecificCpu) != 0)
+    if (GenerateObjectFileFromLLVMIR(LLVMIR, ObjectFilePath, Passes, SpecificCpu) != 0)
     {
         remove(ObjectFilePath);
         return 1;
     }
     char Command[2048];
-    snprintf(Command, sizeof(Command), "clang \"%s\" -o \"%s\"", ObjectFilePath, OutputPath);
+    char OutputName[1028];
+    snprintf(OutputName, sizeof(OutputName), "%s.exe", OutputPath);
+    snprintf(Command, sizeof(Command), "clang \"%s\" -o \"%s\"", ObjectFilePath, OutputName);
+
     int Result = system(Command);
     if (!KeepTemporaries) remove(ObjectFilePath);
     return Result;

@@ -21,6 +21,7 @@
 #include <time.h>
 #include <errno.h>
 #include <sys/stat.h>
+#include <stddef.h>
 
 // LLVM 
 #include <llvm-c/Core.h>

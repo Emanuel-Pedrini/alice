@@ -52,12 +52,6 @@ typedef enum Enum__AliceInstructionOpcodeKind
     AliceIROpcode_Unreachable
 } AliceInstructionOpcodeKind;
 
-typedef enum Enum__NumericType
-{
-    Floating,
-    Integer
-} NumericType;
-
 __OpCode(AliceIROpcode_IAddition)
 __OpCode(AliceIROpcode_ISubtraction)
 __OpCode(AliceIROpcode_IDivision)
@@ -79,7 +73,7 @@ struct Struct__AliceIRValue
     Usize ID;
     ALiceIRValueKind Kind;
 
-    NumericType NumType;
+    AliceNumericType NumType;
     Dsize IntegerValue;
     double FloatingValue;
     __AliceType* Type;
@@ -95,9 +89,9 @@ struct Struct__AliceIRInstruction
 {
     Usize ID;
     const AliceInstructionType* Type;
-    AliceIRValue* Left;
-    AliceIRValue* Right;
-    AliceIRValue* Destiny;
+    AliceIRValue* Primary;
+    AliceIRValue* Secondary;
+    AliceIRValue* Tertiary;
 };
 
 struct Struct__AliceIRModule
@@ -148,7 +142,7 @@ Bool IsTerminatorInstruction(AliceInstructionOpcodeKind Kind);
 AliceIRBlock* NewAlIRBlock(CString Name);
 AliceIRBlock* NewAlIRUniqueBlock(CString BaseName, AliceIRFunction* Function);
 AliceInstructionType* NewAlInstructionType(AliceInstructionOpcodeKind Kind);
-AliceIRInstruction* NewAlInstruction(const AliceInstructionType* Type, AliceIRValue* Left, AliceIRValue* Right);
+AliceIRInstruction* NewAlInstruction(const AliceInstructionType* Type, AliceIRValue* Primary, AliceIRValue* Secondary, AliceIRValue* Tertiary);
 AliceIRValue* NewAlIRValue(ALiceIRValueKind Kind, __AliceType* Type);
 AliceIRFunction* NewAlIRFunction(CString Name, __AliceType* ReturnType);
 AliceIRBuilder* NewAlIRBuilder();

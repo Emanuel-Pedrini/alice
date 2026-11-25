@@ -45,15 +45,15 @@ AliceInstructionType* NewAlInstructionType(AliceInstructionOpcodeKind Kind)
     return InstructionType;
 }
 
-AliceIRInstruction* NewAlInstruction(const AliceInstructionType* Type, AliceIRValue* Left, AliceIRValue* Right)
+AliceIRInstruction* NewAlInstruction(const AliceInstructionType* Type, AliceIRValue* Primary, AliceIRValue* Secondary, AliceIRValue* Tertiary)
 {
     AliceInstructionIDManager++;
     AliceIRInstruction* Instruction = __AlAllocate(sizeof(AliceIRInstruction));
     Instruction -> Type = Type;
-    Instruction -> Left = Left;
-    Instruction -> Right = Right;
+    Instruction -> Primary = Primary;
+    Instruction -> Secondary = Secondary;
     Instruction -> ID = AliceInstructionIDManager;
-    Instruction -> Destiny = NULL;
+    Instruction -> Tertiary = Tertiary;
     return Instruction;
 }
 
@@ -126,20 +126,20 @@ AliceIRSlot* NewAlIRSlot(CString Name, __AliceType* Type)
 
 __Void NewAlIRBlockInstruction(AliceIRBlock* Block, AliceIRInstruction* Instruction)
 {
-    __PushAlStack(Block -> Instructions, Instruction);
+    __PushAlStack(Block -> Instructions, &Instruction);
 }
 
 __Void NewAlIRFunctionBlock(AliceIRFunction* Function, AliceIRBlock* Block)
 {
-    __NewElementAlDictionary(Function -> Blocks, Block -> Name, Block);
-    __PushAlVector(Function -> BlockNames, Block -> Name);
+    __NewElementAlDictionary(Function -> Blocks, Block -> Name, &Block);
+    __PushAlVector(Function -> BlockNames, &Block -> Name);
     Function -> BlockCount++;
 }
 
 __Void NewAlIRModuleFunction(AliceIRModule* Module, AliceIRFunction* Function)
 {
-    __NewElementAlDictionary(Module -> Functions, Function -> Name, Function);
-    __PushAlVector(Module -> FunctionNames, Function -> Name);
+    __NewElementAlDictionary(Module -> Functions, Function -> Name, &Function);
+    __PushAlVector(Module -> FunctionNames, &Function -> Name);
 }
 
 Usize NewSlotIRBuilder(AliceIRBuilder* Builder, MemberDeclaration* Member)
@@ -147,7 +147,7 @@ Usize NewSlotIRBuilder(AliceIRBuilder* Builder, MemberDeclaration* Member)
     AliceIRFunction* Function = Builder -> CurrentFunction;
     AliceIRSlot* Slot = NewAlIRSlot(Member -> Name -> Chars, Member -> Type);
     Usize ID = Function -> Slots -> VSize;
-    __PushAlVector(Function -> Slots, Slot);
+    __PushAlVector(Function -> Slots, &Slot);
     Member -> Symbol -> Slot = ID;
     return ID;
 }
@@ -194,6 +194,7 @@ __Void BuildFromFunctionImplIRBuilder(AliceIRBuilder* Builder, FunctionImplDecla
 {
     AliceIRFunction* Function = NewAlIRFunction(N -> Head -> Name -> Chars, N -> Head -> ReturnType);
     AliceIRBlock* EntryBlock = NewAlIRBlock(__EntryBlockMacro);
+
     NewAlIRFunctionIRBuilder(Builder, Function);
     NewAlIRBlockIRBuilder(Builder, EntryBlock);
 
@@ -214,6 +215,7 @@ __Void BuildFromReturnIRBuilder(AliceIRBuilder* Builder, ReturnDeclaration* N)
         NewAlInstruction(
             &ConstantPointerToAliceIROpcode_Return,
             BuildFromExpressionIRBuilder(Builder, N -> Value),
+            NULL,
             NULL
         )
     );
@@ -226,7 +228,7 @@ static AliceIRValue* NewAlIRFunctionLoadIRBuilder(AliceIRBuilder* Builder, Usize
     AliceIRValue* Destiny = NewAlIRValue(IRValue_Temporary, Type);
     NewAlIRInstructionIRBuilder(
         Builder,
-        NewAlInstruction(&ConstantPointerToAliceIROpcode_Load, Source, Destiny) 
+        NewAlInstruction(&ConstantPointerToAliceIROpcode_Load, Source, Destiny, NULL)
     );
     return Destiny;
 }
@@ -241,6 +243,7 @@ static AliceIRValue* BuildFromExpressionIRBuilder(AliceIRBuilder* Builder, Expre
                 case Tk_Number:
                     AliceIRValue* Value  = NewAlIRValue(IRValue_Constant, N -> ResolvedType);
                     long NumericValue = __StringToInt(__AlStringFrom(N -> Value.Literal->Literal), 10);
+                    Value -> NumType = AlNumericType_Integer;
                     Value -> IntegerValue = NumericValue;
                     return Value;
                 case Tk_Decimal: // Here, change after.
@@ -264,7 +267,7 @@ static AliceIRValue* BuildFromExpressionIRBuilder(AliceIRBuilder* Builder, Expre
 
 __Void BuildFromVariableAssignIRBuilder(AliceIRBuilder* Builder, VariableAssignDeclaration* N)
 {
-
+    (Builder);
 }
 
 __Void BuildFromMemberIRBuilder(AliceIRBuilder* Builder, MemberDeclaration* N)

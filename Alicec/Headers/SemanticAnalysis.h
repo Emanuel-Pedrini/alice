@@ -7,6 +7,8 @@
 #include "Headers/ForwardInclude.h"
 
 #define __NoSymbol ((Usize)-1)
+#define __StandardFloatType &Globalf64
+#define __StandardIntegerType &Globali32
 
 struct Struct__ScopeObject
 {
@@ -21,9 +23,9 @@ struct Struct__ScopeContext
     LocalSymbol* Symbol;
 };
 
-struct SemanticAnalysis
+struct Struct__SemanticAnalysisResult
 {
-    Bool FullResolution;
+    Bool Ok;
 };
 
 struct Struct__SemanticAnalyserState
@@ -36,10 +38,12 @@ struct Struct__SemanticAnalyserState
 
 SemanticAnalyserState* NewSemanticAnalyserState(ParserNode* AST);
 LocalSymbol* NewLocalSymbol(__AliceString* Name, __AliceType* Type);
-SemanticAnalysis* AnalyseSemanticAnalyserState(SemanticAnalyserState* AliceState);
-SemanticAnalysis* CollectGlobalTypesSemanticAnalyserState(SemanticAnalyserState* AliceState);
-SemanticAnalysis* CollectGlobalFunctionsSemanticAnalyserState(SemanticAnalyserState* AliceState);
+SemanticAnalysisResult* AnalyseSemanticAnalyserState(SemanticAnalyserState* AliceState);
+SemanticAnalysisResult* CollectGlobalTypesSemanticAnalyserState(SemanticAnalyserState* AliceState);
+SemanticAnalysisResult* CollectGlobalFunctionsSemanticAnalyserState(SemanticAnalyserState* AliceState);
 ScopeContext* LookupSemanticAnalyserState(SemanticAnalyserState* AliceState, __AliceString* ScopeObjectName);
 static __Void AnalyseNode(SemanticAnalyserState* AliceState, ParserNode* N);
 static __AliceType* AnalyseExpression(SemanticAnalyserState* AliceState, Expression* N);
+Bool GetSemanticAnalysisWasSucessfull(SemanticAnalysisResultRef Result);
+SemanticAnalysisResultRef NewSemanticAnalysisResult(SemanticAnalyserState* AliceState);
 #endif

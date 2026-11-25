@@ -9,10 +9,8 @@
 #include "Headers/ForwardInclude.h"
 
 extern __AliceDictionary* __GlobaStringToAlTypelDictionary;
-
 typedef enum
 {
-    AlType_Null = 0,
     AlType_i8 = -1,
     AlType_i16 = -2,
     AlType_i32 = -4,
@@ -28,10 +26,27 @@ typedef enum
     AlType_Char= -255,
     AlType_Boolean = -256,
     AlType_Pointer = 256,
-    AlType_Generic,
-    AlType_Userdata
+    AlType_Generic = 512,
+    AlType_Userdata = 1024,
+    AlType_Null = 2048
 } AliceTypeKind;
-#define TPK (AlType_f64 - AlType_i8)
+#define __NumericType(T) (T <= AlType_f64)
+#define __ExternConstantType(T) extern __AliceType Global##T;
+__ExternConstantType(i8)
+__ExternConstantType(i16)
+__ExternConstantType(i32)
+__ExternConstantType(i64)
+__ExternConstantType(i128)
+__ExternConstantType(u8)
+__ExternConstantType(u16)
+__ExternConstantType(u32)
+__ExternConstantType(u64)
+__ExternConstantType(u128)
+__ExternConstantType(f32)
+__ExternConstantType(f64)
+__ExternConstantType(Boolean)
+__ExternConstantType(Char)
+__ExternConstantType(Null)
 
 struct Struct__AliceTypePointerInformation
 {
@@ -51,24 +66,33 @@ struct Struct__AliceTypeGenericInformation
     Expression* SizeExpression;
 };
 
+struct Struct__AliceTypeNumericInformation
+{
+    AliceNumericType Type;
+    Bool IsSigned;
+    Usize BitWidth;
+};
+
 union Union__AliceTypeInformation
 {
     __AliceTypeComplexInformation Complex;
     __AliceTypeGenericInformation Generic;
     __AliceTypePointerInformation Pointer;
+    __AliceTypeNumericInformation Numeric;
 };
 
 struct Struct__AliceType
 {
     CString Literal;
     AliceTypeKind Kind;
-    __AliceTypeInformation* Information;
+    __AliceTypeInformation Information;
     __AliceString* (*ConversionToString)(__AliceType*);
 };
 
-__AliceType* __NewAlGenericType(CString __Literal, AliceTypeKind __Kind, __AliceType* __InternType);
+__AliceType* __NewAliceType(CString __Literal, AliceTypeKind __Kind, __AliceType* __InternType);
 __AliceString* ConversionToString__AliceType(__AliceType* __AlType);
-AliceTypeKind __NativeAlTypeFromString(__AliceString* __Key, Bool __Override);
+__AliceType*__NativeAlTypeFromString(__AliceString* __Key, Bool __Override);
 Bool __CompareAliceType(__AliceType* Type, __AliceType* OtherType);
 Bool __IsBooleanOperator(AliceTokenType Type);
+AliceCastingType __CastingType(__AliceType* FromType, __AliceType* ToType);
 #endif

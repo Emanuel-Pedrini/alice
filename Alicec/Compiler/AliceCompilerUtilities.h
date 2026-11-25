@@ -15,9 +15,10 @@ typedef enum Enum__AliceCodeContextKind
     AlContext_Block = 1
 } AliceCodeContextKind;
 
-struct Struct__AliceCompileResult
+struct Struct__AliceCompilerResult
 {
-
+    Bool Ok;
+    __AliceString* RLiteral;
 };
 
 union Union__AliceCodeContent
@@ -66,12 +67,15 @@ AliceCodeLine* NewCodeLine(CString Literal);
 AliceCodeBlock* NewCodeBlock();
 AliceCodeContext* NewCodeContext(AliceCodeContextKind Kind, __VoidPointer Content);
 AliceCodeFormat* NewCodeFormat(CString Literal);
+AliceCompilerResult* NewAliceCompilerResult(Bool Ok, __AliceString* Literal);
 
 Bool NewCodeBlockLine(AliceCodeBlock* Block, AliceCodeLine* Line);
 Bool NewCodeBlockBlock(AliceCodeBlock* Block, AliceCodeBlock* OtherBlock);
 Bool NewCodeWriterBlock(AliceCodeWritter* Writter, AliceCodeBlock* Block);
 Bool New__AliceCodeWritterLine(AliceCodeWritter* Writter, AliceCodeLine* Line);
 AliceCodeBlock* NewCodeBlockFormatted(CString OpenFormat, CString CloseFormat);
-
+Bool GetCompilationWasSucessfull(AliceCompilerResult* Result);
+__AliceString* CodeGenerateCodeWritter(AliceCodeWritter* Writter);
+__AliceString* GetCodeByContext(AliceCodeWritter* Writter, AliceCodeContext* Context);
 Bool CodeWrite(AliceCodeWritter* Writter);
 #endif

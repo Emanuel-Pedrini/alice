@@ -20,9 +20,10 @@ typedef union Union__AliceTypeInformation __AliceTypeInformation;
 typedef struct Struct__AliceTypeComplexInformation __AliceTypeComplexInformation;
 typedef struct Struct__AliceTypeGenericInformation __AliceTypeGenericInformation;
 typedef struct Struct__AliceTypePointerInformation __AliceTypePointerInformation;
+typedef struct Struct__AliceTypeNumericInformation __AliceTypeNumericInformation;
 
 typedef struct Struct__SemanticAnalyserState SemanticAnalyserState;
-typedef struct Struct__SemanticAnalysis SemanticAnalysis;
+typedef struct Struct__SemanticAnalysisResult SemanticAnalysisResult;
 typedef struct Struct__ScopeContext ScopeContext;
 typedef struct Struct__ScopeObject ScopeObject;
 typedef struct Struct__LocalSymbol LocalSymbol;
@@ -66,6 +67,16 @@ typedef struct Struct__AliceIRBuilder AliceIRBuilder;
 typedef struct Struct__AliceIRContext AliceIRContext;
 typedef struct Struct__AliceIRSlot AliceIRSlot;
 
+typedef struct Struct__AliceCompilationAttributes AliceCompilationAttributes;
+typedef struct Struct__AliceCompilationAttributesReader AliceCompilationAttributesReader; 
+
+typedef struct Struct__AliceManagementObject AliceManagementObject;
+typedef AliceCompilationAttributesReader* AliceCompilationAttributesReaderRef;
+typedef AliceCompilationAttributes* AliceCompilationAttributesRef;
+typedef AliceManagementObject* AliceManagementObjectRef;
+typedef SemanticAnalyserState* SemanticAnalyserStateRef;
+typedef SemanticAnalysisResult* SemanticAnalysisResultRef;
+
 struct Struct__LocalSymbol
 {
     __AliceString* Name;
@@ -73,6 +84,19 @@ struct Struct__LocalSymbol
     Usize Slot;
 };
 
-typedef struct Struct__AliceCompilationAttributes AliceCompilationAttributes;
-typedef struct Struct__AliceCompilationAttributesReader AliceCompilationAttributesReader; 
+typedef enum Enum__NumericType
+{
+    AlNumericType_Floating = -1,
+    AlNumericType_Integer = 1
+} AliceNumericType;
+
+typedef enum Enum__AliceCastingType
+{
+    AlCastingType_NoCasting = -3,
+    AlCastingType_Implicit = -2,
+    AlCastingType_Explicit = -1, // ^ Can
+    AlCastingType_Invalid = 0, //  v Can't
+    AlCastingType_Unsolved = 1
+} AliceCastingType;
+
 #endif

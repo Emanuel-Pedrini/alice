@@ -1,15 +1,12 @@
 #include "Headers/ArchiveManager.h"
-#include "Headers/AliceDevelopmentTypes.h"
-#include "Headers/CStringUtils.h"
-#include "Headers/ForwardInclude.h"
-#include "External/Libraries.h"
 
 char* OpenFileNWindows(char* ArchivePath, Usize Capacity) {
     Usize capacity = Capacity;
     int size = 0;
 
     FILE* file = fopen(ArchivePath, "r");
-    if (file == NULL) {
+    if (file == NULL) 
+    {
         return NULL;
     }
 
@@ -59,7 +56,7 @@ AliceCodeObject* OpenAliceFile(char* ArchivePath)
     return NewCodeObject;
 }
 
-int FileWrite(char* Path, CString Content, CString Mode) 
+int AliceFileWrite(char* Path, CString Content, CString Mode) 
 {
     FILE* File = fopen(Path, Mode);
     if (File == NULL) {
@@ -95,19 +92,33 @@ int PathRename(CString OriginalPath, CString NewPath)
 }
 
 #define WIN32_LEAN_AND_MEAN
-int ListDirectory(CString Folder, CString Filter)
+int ListDirectory(CString Folder, CString Filter, __AliceVector* Buffer)
 {
     char Pattern[MAX_PATH];
     WIN32_FIND_DATAA Data;
 
-    snprintf(Pattern, sizeof(Pattern), "%s\\%s", Folder, Filter);
+    snprintf(Pattern, sizeof(Pattern), "%s\\*", Folder);
     HANDLE Handle = FindFirstFile(Pattern, &Data);
     if (Handle == INVALID_HANDLE_VALUE) return 1;
     do 
     {
-        if (Data.cFileName == ".") continue;
         int IsDirectory = (Data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
-        printf("%s%s\n", Data.cFileName, IsDirectory ? "\\" : "");
+        if ((strcmp(Data.cFileName, ".") == 0) || (strcmp(Data.cFileName, "..") == 0)) continue;
+        if (IsDirectory) 
+        {
+            if (Data.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) continue;
+            char SubFolder[MAX_PATH];
+            snprintf(SubFolder, sizeof(SubFolder), "%s\\%s", Folder, Data.cFileName);
+            ListDirectory(SubFolder, Filter, Buffer);
+        }
+
+        CString Dot = strchr(Data.cFileName, '.');
+        if (!Dot || _strcmpi(Dot, Filter) != 0) continue;
+
+        __AliceString* Path = __AlStringFrom(Folder);
+        __AppendAlString(Path, "\\");
+        __AppendAlString(Path, Data.cFileName);
+        __PushAlVector(Buffer, Path);
     } while (FindNextFileA(Handle, &Data));
     FindClose(Handle);
     return 0;
