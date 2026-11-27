@@ -77,7 +77,6 @@ struct Struct__AliceIRValue
     Dsize IntegerValue;
     double FloatingValue;
     __AliceType* Type;
-    __AliceString* (*ConversionToString)(AliceIRValue*);
 };
 
 struct Struct__AliceInstructionType

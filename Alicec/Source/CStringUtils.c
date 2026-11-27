@@ -40,7 +40,7 @@ Bool IsAlphaNumerical(const char Character)
     return False;
 }
 
-Bool IsIndentifierChar(const char Character)
+Bool IsIdentifierChar(const char Character)
 {
     if (IsAlphabetic(Character) || IsNumerical(Character) || Character == '_')
     {
@@ -52,9 +52,7 @@ Bool IsIndentifierChar(const char Character)
 char* File(char* FullPath) {
     Usize StringSize = strlen(FullPath);
     int x;
-    for (x = StringSize; FullPath[x] != '\\' &&  FullPath[x] != '/'; x--) 
-    {
-    }
+    for (x = StringSize; (FullPath[x] != '\\' &&  FullPath[x] != '/') && x > 0; x--) {}
     return Substring(FullPath, x + 1, StringSize);
 }
 

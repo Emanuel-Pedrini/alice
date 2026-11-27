@@ -9,7 +9,7 @@ Bool IsNumerical(const char Character);
 Bool IsInvalid(const char Character);
 Bool IsAlphabetic(const char Character);
 Bool IsAlphaNumerical(const char Character);
-Bool IsIndentifierChar(const char Character);
+Bool IsIdentifierChar(const char Character);
 Bool IsValidNumerical(const char Character);
 char* Substring(CString Source, Usize Start, Usize End);
 char* File(char* FullPath);

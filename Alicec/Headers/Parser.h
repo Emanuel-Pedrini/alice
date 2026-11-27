@@ -8,14 +8,15 @@
 #include "Headers/AliceTypes.h"
 #include "Headers/ForwardInclude.h"
 
-#define MEMBER_DELIMITER Tk_Colon
-#define ARGUMENT_DELIMITER Tk_Comma
+#define MEMBER_DELIMITER AliceTK_Colon
+#define ARGUMENT_DELIMITER AliceTK_Comma
 #define ASSOCIATIVE_DELIMITER Tk_Equal
-#define POINTER_DELIMITER Tk_Commercial
-#define TWO_TOKEN_DECLR(T1, T2) if (PeekTokenParserState(AliceState, 0) -> Type == T1 && PeekTokenParserState(AliceState, 1) -> Type == T2)
-#define TREE_TOKEN_DECLR(T1, T2, T3) if (PeekTokenParserState(AliceState, 0) -> Type == T1 && PeekTokenParserState(AliceState, 1) -> Type == T2 && PeekTokenParserState(AliceState, 2) -> Type == T3)
-#define FOUR_TOKEN_DECLR(T1, T2, T3, T4) if (PeekTokenParserState(AliceState, 0) -> Type == T1 && PeekTokenParserState(AliceState, 1) -> Type == T2 && PeekTokenParserState(AliceState, 2) -> Type == T3 && PeekTokenParserState(AliceState, 3) -> Type == T4)
+#define POINTER_DELIMITER AliceTK_Ampersand
 
+#define FAST_PEEK(OFF, T) ((PeekTokenParserState(AliceState, OFF) != NULL) && PeekTokenParserState(AliceState, OFF) -> Type == T)
+#define TWO_TOKEN_DECLR(T1, T2) if (FAST_PEEK(0,T1) && FAST_PEEK(1,T2))
+
+#define TREE_TOKEN_DECLR(T1, T2, T3) if (FAST_PEEK(0,T1) && FAST_PEEK(1,T2) && FAST_PEEK(2,T3))
 
 
 enum Enum__ParserNodeType 

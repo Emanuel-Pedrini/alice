@@ -7,7 +7,6 @@ Expression* NewExpression(ExpressionType Type, OperandValue ConstOperand)
     Expression* ExpressionN = __AlAllocate(sizeof(Expression));
     ExpressionN -> Type = Type;
     ExpressionN -> Value = ConstOperand;
-    ExpressionN -> ConversionToString = ConversionToString__Expression;
     return ExpressionN;
 }
 
@@ -16,7 +15,6 @@ AcessCallOperator* NewFunctionCallOperator(Expression* Callee, __AliceVector* Ar
     AcessCallOperator* OperatorF = __AlAllocate(sizeof(AcessCallOperator));
     OperatorF -> Callee = Callee;
     OperatorF -> Arguments = Arguments;
-    OperatorF -> ConversionToString = ConversionToString__FunctionCallOperator;
     return OperatorF; 
 }
 
@@ -25,7 +23,6 @@ UnaryOperator* NewUnaryOperator(AliceToken* Operator, Expression* Operand)
     UnaryOperator* UnaryOp = __AlAllocate(sizeof(UnaryOperator));
     UnaryOp -> Operand = Operand;
     UnaryOp -> Operator = Operator;
-    UnaryOp -> ConversionToString = ConversionToString__UnaryOperator;
     return UnaryOp;
 }
 
@@ -35,8 +32,6 @@ BinaryOperator* NewBinaryOperator(AliceToken* Operator, Expression* Left, Expres
     BinaryOp -> Left = Left;
     BinaryOp -> Right = Right;
     BinaryOp -> Operator = Operator;
-    BinaryOp -> ConversionToString = ConversionToString__BinaryOperator;
-
     return BinaryOp;
 }
 
@@ -54,14 +49,14 @@ __AliceString* ConversionToString__FunctionCallOperator(AcessCallOperator* InQ)
     __AliceString* Result = __AlStringFrom("");
     __AppendAlString(Result, "AcessObject( ");
     Expression* Expr = InQ -> Callee;
-    __AppendAlString(Result, Expr -> ConversionToString(Expr) -> Chars);
+    __AppendAlString(Result, ConversionToString__Expression(Expr) -> Chars);
     __AliceVector* Args = InQ -> Arguments;
     
     __AliceString* __Result = __AlStringFrom(", [ ");
     __ForIn(Args, __I, 0)
     {
         Expression* __Element = *((Expression**)__GetAlVector(Args, __I));
-        __AliceString* __ElementString = __Element -> ConversionToString(__Element);
+        __AliceString* __ElementString = ConversionToString__Expression(Expr);
         __AppendAlString(__Result, __ElementString -> Chars);
         if ((__I + 1 <  Args -> VSize)) __AppendAlString(__Result, " , ");
     }
@@ -78,10 +73,10 @@ __AliceString* ConversionToString__BinaryOperator(BinaryOperator* InQ)
     Expression* RightExpr = InQ -> Right;
 
     __AliceString* S = __AlStringFrom("Binary( ");
-    __AppendAlString(S, (InQ -> Operator) -> ConversionToString(InQ -> Operator) -> Chars);
+    __AppendAlString(S, ConversionToString__AliceToken(InQ -> Operator) -> Chars);
     __AppendAlString(S, " , ");
-    __AliceString* LSE = LeftExpr -> ConversionToString(LeftExpr);
-    __AliceString* RSE = RightExpr -> ConversionToString(RightExpr);
+    __AliceString* LSE = ConversionToString__Expression(LeftExpr);
+    __AliceString* RSE = ConversionToString__Expression(RightExpr);
     __AppendAlString(S, LSE -> Chars);
     __AppendAlString(S, " , ");
     __AppendAlString(S, RSE -> Chars);
@@ -93,9 +88,9 @@ __AliceString* ConversionToString__UnaryOperator(UnaryOperator* InQ)
 {
     Expression* Expr = InQ -> Operand;
     __AliceString* S = __AlStringFrom("Unary( ");
-    __AppendAlString(S, (InQ -> Operator) -> ConversionToString(InQ -> Operator) -> Chars);
+    __AppendAlString(S, ConversionToString__AliceToken(InQ -> Operator) -> Chars);
     __AppendAlString(S, " , ");
-    __AliceString* SE = Expr -> ConversionToString(Expr);
+    __AliceString* SE = ConversionToString__Expression(Expr);
     __AppendAlString(S, SE -> Chars);
     __AppendAlString(S, " )");
     return S;
@@ -108,13 +103,13 @@ __AliceString* ConversionToString__Expression(Expression* InQ)
         case UNARY:
         {
             UnaryOperator* UnOp = InQ -> Value.Unary;
-            return UnOp -> ConversionToString(UnOp);
+            return ConversionToString__UnaryOperator(UnOp);
         }
         
         case BINARY:
         {
             BinaryOperator* BinOp = InQ -> Value.Binary;
-            return BinOp -> ConversionToString(BinOp);
+            return ConversionToString__BinaryOperator(BinOp);
         }
 
         case LITERAL:
@@ -124,7 +119,7 @@ __AliceString* ConversionToString__Expression(Expression* InQ)
         case CALL:
         {
             AcessCallOperator* AcessOp = InQ -> Value.Function;
-            return AcessOp -> ConversionToString(AcessOp);
+            return ConversionToString__FunctionCallOperator(AcessOp);
         }
         default:
             return __AlStringFrom("Null");
@@ -182,11 +177,11 @@ Usize BindingPower(ExpressionReader* Reader, const AliceTokenType Operator)
 
         BindingOperator(Tk_Minus, 16)
         BindingOperator(Tk_Plus, 16)
-        BindingOperator(Tk_Asterisk, 32)
+        BindingOperator(AliceTK_Asterisk, 32)
         BindingOperator(Tk_Div, 32)
-        BindingOperator(Tk_Percentage, 64)
+        BindingOperator(AliceTK_Percent, 64)
         BindingOperator(Tk_UpArrow, 64)
-        BindingOperator(Tk_Point, 128)
+        BindingOperator(AliceTK_Point, 128)
         default: return BASE_EXPRESSION_VALUE * 0;
     }
 }
@@ -223,7 +218,7 @@ Bool AcessCloser(const AliceTokenType Opener)
         case Tk_LeftParenthesis: return Tk_RightParenthesis;
         case Tk_LeftBrace: return Tk_RightBrace;
         case Tk_LeftKeys: return Tk_RightKeys;
-        default: return Tk_Illegal;
+        default: return AliceTK_Illegal;
     }
 }
 
@@ -240,7 +235,7 @@ Expression* CallDenotation(ExpressionReader* Reader, Expression* Callee)
             Expression* Argument = ParseExpression(Reader, 0);
             __PushAlVector(Arguments, &Argument);
             Next = PeekExpressionReader(Reader, 0);
-            if (Next != NULL && Next -> Type == Tk_Comma)
+            if (Next != NULL && Next -> Type == AliceTK_Comma)
             {
                 ConsumeExpressionReader(Reader);
                 continue;

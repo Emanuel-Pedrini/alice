@@ -45,7 +45,7 @@ AliceCodeObject* OpenAliceFile(char* ArchivePath)
     AliceCodeObject* NewCodeObject = __AlAllocate(sizeof(AliceCodeObject));
     char* Code = OpenFileNWindows(ArchivePath, 1024);
     if (Code == NULL) {
-        printf(">> ERROR : Could not find '%s'!\n", ArchivePath);
+        printf(">> ERROR : Could not find \'%s\'!\n", ArchivePath);
         return NULL;
     }
     char* Path = ArchivePath;
@@ -113,7 +113,7 @@ int ListDirectory(CString Folder, CString Filter, __AliceVector* Buffer)
         }
 
         CString Dot = strchr(Data.cFileName, '.');
-        if (!Dot || _strcmpi(Dot, Filter) != 0) continue;
+        if (!Dot || _strcmpi(Dot, Filter) != 0) continue; 
 
         __AliceString* Path = __AlStringFrom(Folder);
         __AppendAlString(Path, "\\");

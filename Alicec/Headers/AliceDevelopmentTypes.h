@@ -32,7 +32,6 @@ struct Struct__AliceVector
     Usize VSize;
     Usize VCapacity;
     Usize ESize;
-    __AliceString* (*ConversionToString)(__AliceVector*);
     __AliceRefCounted* RefCount;
 };
 

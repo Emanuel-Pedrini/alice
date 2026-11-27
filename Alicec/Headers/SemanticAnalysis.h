@@ -39,11 +39,15 @@ struct Struct__SemanticAnalyserState
 SemanticAnalyserState* NewSemanticAnalyserState(ParserNode* AST);
 LocalSymbol* NewLocalSymbol(__AliceString* Name, __AliceType* Type);
 SemanticAnalysisResult* AnalyseSemanticAnalyserState(SemanticAnalyserState* AliceState);
-SemanticAnalysisResult* CollectGlobalTypesSemanticAnalyserState(SemanticAnalyserState* AliceState);
-SemanticAnalysisResult* CollectGlobalFunctionsSemanticAnalyserState(SemanticAnalyserState* AliceState);
+ScopeObject* NewScopeObject(__AliceType* Type, LocalSymbol* Symbol);
+
+SemanticAnalysisResult* CollectGlobalTypesSemanticAnalyserState(SemanticAnalyserState* AliceState, BodyDeclaration* N);
+SemanticAnalysisResult* CollectGlobalFunctionsSemanticAnalyserState(SemanticAnalyserState* AliceState, BodyDeclaration* N);
+
 ScopeContext* LookupSemanticAnalyserState(SemanticAnalyserState* AliceState, __AliceString* ScopeObjectName);
 static __Void AnalyseNode(SemanticAnalyserState* AliceState, ParserNode* N);
 static __AliceType* AnalyseExpression(SemanticAnalyserState* AliceState, Expression* N);
 Bool GetSemanticAnalysisWasSucessfull(SemanticAnalysisResultRef Result);
 SemanticAnalysisResultRef NewSemanticAnalysisResult(SemanticAnalyserState* AliceState);
+static __Void AnalyseMember(SemanticAnalyserState* AliceState, MemberDeclaration* N);
 #endif

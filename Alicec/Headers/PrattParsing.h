@@ -33,26 +33,22 @@ struct Struct__BinaryOperator
     AliceToken* Operator;
     Expression* Left;
     Expression* Right;
-    __AliceString* (*ConversionToString)(BinaryOperator*);
 };
 
 struct Struct__UnaryOperator
 {
     AliceToken* Operator;
     Expression* Operand;
-    __AliceString* (*ConversionToString)(UnaryOperator*);
 };
 
 struct Struct__FunctionCallOperator 
 {
     Expression* Callee;
     __AliceVector* Arguments;
-    __AliceString* (*ConversionToString)(AcessCallOperator*);
 };
 
 struct Struct__FieldAcessOperator
 {
-    __AliceString* (*ConversionToString)(FieldAcessOperator*);
 };
 
 typedef union Union__OperandValue
@@ -70,7 +66,6 @@ struct Struct__Expression
     OperandValue Value;
     __AliceType* ResolvedType;
     LocalSymbol* Symbol;
-    __AliceString* (*ConversionToString)(Expression*);
 };
 
 struct  Struct__ExpressionReader

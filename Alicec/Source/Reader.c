@@ -32,7 +32,7 @@ static char* CStringWithoutInitialSymbols(CString Source)
 {
     Usize Size =  strlen(Source);
     Usize Length = 0;
-    for (; Source[Length] != '\0' && !IsIndentifierChar(Source[Length]); Length++){};
+    for (; Source[Length] != '\0' && !IsIdentifierChar(Source[Length]); Length++){};
     return Substring(Source, Length, Size);
 }
 

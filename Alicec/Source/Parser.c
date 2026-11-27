@@ -1,5 +1,6 @@
 #include "Headers/Parser.h"
 #include "External/Libraries.h"
+#include "External/Libraries.h"
 
 ParserState* NewParserState(__AliceVector* Tokens)
 {
@@ -74,12 +75,12 @@ Bool JudgeTokenParserState(ParserState* AliceState, AliceTokenType Expected)
 
 ParserNode* ParsenizeMember(ParserState* AliceState)
 {
-    AliceToken* IndentifierToken = ExpectTokenParserState(AliceState, Tk_Indentifier);
-    if (IndentifierToken == NULL) return NULL;
+    AliceToken* IdentifierToken = ExpectTokenParserState(AliceState, Tk_Identifier);
+    if (IdentifierToken == NULL) return NULL;
     ExpectTokenParserState(AliceState, MEMBER_DELIMITER);
     __AliceType* Type = ParsenizeAliceType(AliceState);
     ParserNodeDeclaration Declaration;
-    MemberDeclaration Member = {__AlStringFrom(IndentifierToken -> Literal), Type};
+    MemberDeclaration Member = {__AlStringFrom(IdentifierToken -> Literal), Type};
     Declaration.FieldMember = Member;
     return NewParserNode(AsMember, Declaration);
 }
@@ -94,8 +95,17 @@ __AliceVector* ParsenizeMemberGroup(ParserState* AliceState, AliceTokenType Deli
         if (Member != NULL)
         {
             __PushAlVector(MemberGroup, &(Member->Declaration.FieldMember));
-            if (PeekTokenParserState(AliceState, 0) -> Type == ARGUMENT_DELIMITER) {FowardPointerParserState(AliceState);continue;}
-            if (PeekTokenParserState(AliceState, 0) -> Type == Delimiter) break;
+        }
+        if (PeekTokenParserState(AliceState, 0) -> Type == ARGUMENT_DELIMITER) 
+        {
+            FowardPointerParserState(AliceState);
+            continue;
+        }
+        else if (PeekTokenParserState(AliceState, 0) -> Type == Delimiter) break;
+        else 
+        {
+            RaiseParserError(AliceState);
+            FowardPointerParserState(AliceState);
         }
     }
     return MemberGroup;
@@ -103,51 +113,57 @@ __AliceVector* ParsenizeMemberGroup(ParserState* AliceState, AliceTokenType Deli
 
 __AliceType* ParsenizeAliceType(ParserState* AliceState)
 {
-    if (PeekTokenParserState(AliceState, 0) -> Type == POINTER_DELIMITER)
+    AliceToken* ActualToken = PeekTokenParserState(AliceState, 0);
+    if (ActualToken != NULL) 
     {
-        FowardPointerParserState(AliceState);
-        __AliceType* T = ParsenizeAliceType(AliceState);
-        return __NewAliceType("", AlType_Pointer, T);
-    }
-    else TWO_TOKEN_DECLR(Tk_Indentifier, Tk_LeftArrow)
-    {
-        AliceToken* IdentifierToken = ConsumeTokenParserState(AliceState);
-        FowardPointerParserState(AliceState);
-        __AliceType* T = ParsenizeAliceType(AliceState);
-        __AliceType* G = __NewAliceType(IdentifierToken -> Literal, AlType_Generic, T);
-        while (True)
+        if (ActualToken -> Type == POINTER_DELIMITER)
         {
-            if (PeekTokenParserState(AliceState, 0) -> Type == ARGUMENT_DELIMITER) 
-            {
-                FowardPointerParserState(AliceState);
-                AliceState -> Reader -> RightDelimiter = Tk_RightArrow;
-                Expression* Expr = ParsenizeExpression(AliceState);
-                G -> Information.Generic.SizeExpression = Expr;
-                G -> Information.Generic.SizeExpressed = True;
-                AliceState -> Reader -> RightDelimiter = Tk_Anything;
-            }
-            else 
-            {
-                break;
-            }
+            FowardPointerParserState(AliceState);
+            __AliceType* T = ParsenizeAliceType(AliceState);
+            return __NewAliceType("", AlType_Pointer, T);
         }
-        ExpectTokenParserState(AliceState, Tk_RightArrow);
-        return G;
-    }
-    else if (PeekTokenParserState(AliceState, 0) -> Type == Tk_Indentifier)
-    {
-        AliceToken* IndentifierToken = ExpectTokenParserState(AliceState, Tk_Indentifier);
-        __AliceType* Type = __NativeAlTypeFromString(__AlStringFrom(IndentifierToken -> Literal), False);
-        if (Type == NULL)
+        else TWO_TOKEN_DECLR(Tk_Identifier, Tk_LeftArrow)
         {
-            Type = __NewAliceType(IndentifierToken -> Literal, AlType_Userdata, NULL);
+            AliceToken* IdentifierToken = ConsumeTokenParserState(AliceState);
+            FowardPointerParserState(AliceState);
+            __AliceType* T = ParsenizeAliceType(AliceState);
+            __AliceType* G = __NewAliceType(IdentifierToken -> Literal, AlType_Generic, T);
+            while (True)
+            {
+                if (ActualToken -> Type == ARGUMENT_DELIMITER) 
+                {
+                    FowardPointerParserState(AliceState);
+                    AliceState -> Reader -> RightDelimiter = Tk_RightArrow;
+                    Expression* Expr = ParsenizeExpression(AliceState);
+                    G -> Information.Generic.SizeExpression = Expr;
+                    G -> Information.Generic.SizeExpressed = True;
+                    AliceState -> Reader -> RightDelimiter = Tk_Anything;
+                }
+                else 
+                {
+                    break;
+                }
+            }
+            ExpectTokenParserState(AliceState, Tk_RightArrow);
+            return G;
         }
-        return Type;
+        else if (ActualToken -> Type == Tk_Identifier)
+        {
+            AliceToken* IdentifierToken = ExpectTokenParserState(AliceState, Tk_Identifier);
+            __AliceType* Type = __NativeAlTypeFromString(__AlStringFrom(IdentifierToken -> Literal), False);
+            if (Type == NULL)
+            {
+                Type = __NewAliceType(IdentifierToken -> Literal, AlType_Userdata, NULL);
+            }
+            return Type;
+        }
+        else 
+        {
+            RaiseParserError(AliceState);
+            return NULL;
+        }
     }
-    else 
-    {
-        RaiseParserError(AliceState);
-    }
+    return NULL;
 }
 
 Expression* ParsenizeExpression(ParserState* AliceState)
@@ -187,7 +203,7 @@ ParserNode* ParsenizeVariableReassign(ParserState* AliceState)
     
 }
 
-ParserNode* ParsenizeIndentifier(ParserState* AliceState)
+ParserNode* ParsenizeIdentifier(ParserState* AliceState)
 {
     switch (PeekTokenParserState(AliceState, 1) -> Type)
     {
@@ -235,7 +251,7 @@ ParserNode* ParsenizeFunction(ParserState* AliceState)
     FowardPointerParserState(AliceState);
     __AliceVector* Flags = __NewAlVector(sizeof(FlagDeclaration));
 
-    while (PeekTokenParserState(AliceState, 0) -> Type != Tk_Indentifier)
+    while (PeekTokenParserState(AliceState, 0) -> Type != Tk_Identifier && PeekTokenParserState(AliceState, 1) -> Type == Tk_LeftParenthesis)
     {
         FowardPointerParserState(AliceState);
     }
@@ -248,13 +264,13 @@ ParserNode* ParsenizeFunction(ParserState* AliceState)
 
     __AliceType* ReturnType = ParsenizeAliceType(AliceState);
     
-    if (PeekTokenParserState(AliceState, 0) -> Type == Tk_NewLine && PeekTokenParserState(AliceState, 0) -> Type == Tk_LeftParenthesis)
+    if (PeekTokenParserState(AliceState, 0) -> Type == Tk_NewLine)
     {
         // It's a prototype?
         FowardPointerParserState(AliceState);
         FunctionHeadDeclaration Prototype; 
     }
-    ExpectTokenParserState(AliceState, Tk_Colon);
+    ExpectTokenParserState(AliceState, AliceTK_Colon);
     ExpectTokenParserState(AliceState, Tk_NewLine);
     ParserNode* Body = ParsenizeBody(AliceState);
 
@@ -280,7 +296,7 @@ ParserNode* ParsenizeDeclaration(ParserState* AliceState)
     AliceToken* ActualToken = PeekTokenParserState(AliceState, 0);
     switch (ActualToken -> Type)
     {
-        case Tk_Indentifier: {Node = ParsenizeIndentifier(AliceState); break;}
+        case Tk_Identifier: {Node = ParsenizeIdentifier(AliceState); break;}
         case Tk_Function: {Node = ParsenizeFunction(AliceState); break;}
         case Tk_Return: {Node = ParsenizeReturn(AliceState); break;}
         default:
@@ -295,7 +311,7 @@ ParserNode*(*FunctionByType(AliceTokenType T))(ParserState*)
 {
     switch (T)
     {
-        case Tk_Indentifier: return ParsenizeIndentifier;
+        case Tk_Identifier: return ParsenizeIdentifier;
         default: 
             return NULL;
     }

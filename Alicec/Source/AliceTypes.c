@@ -51,8 +51,7 @@ __AliceType* __NewAliceType(CString __Literal, AliceTypeKind __Kind, __AliceType
     __AliceType* __AlType = __AlAllocate(sizeof(__AliceType));
     __AlType -> Kind = __Kind;
     __AlType -> Literal = __Literal;
-    __AlType -> ConversionToString = ConversionToString__AliceType;
-    if (__Kind = AlType_Generic)
+    if (__Kind == AlType_Generic)
     {
         __AlType -> Information.Generic.ElementType = __InternType;
         __AlType -> Information.Generic.SizeExpressed = False;

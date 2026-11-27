@@ -13,13 +13,16 @@
 #include "Compiler/Native/AliceLLVM.h"
 #include "Compiler/Native/AliceLLVMAPI.h"
 
-Bool ReadAndDecode(const int argc, CString* argv)
+int ReadAndDecode(const int argc, CString* argv)
 {
     AliceCompilationAttributesReaderRef CompilationReader = NewAliceCompilationReader();
     AliceCompilationAttributesRef CompilationAttributes = ReadCompilationAttributes(CompilationReader, argc, argv);
     AliceManagementObjectRef BigGirl = ManageCompilationObject(CompilationReader);
 
-    __AliceString* CompilationPath = __AlStringFrom(CompilationAttributes -> TargetArchive -> Chars);
+    __AliceString* TargetCArchive = CompilationAttributes -> TargetArchive;
+    if (TargetCArchive == NULL) goto AliceCompilationDone;
+    
+    __AliceString* CompilationPath = __AlStringFrom(TargetCArchive -> Chars);
     AliceCodeWritter* AliceSourceToTextCompiler = NewAliceCodeWritter(CompilationPath -> Chars);
 
     __AliceVector* Tokens = AliceLexerTokenize(BigGirl);
@@ -31,7 +34,7 @@ Bool ReadAndDecode(const int argc, CString* argv)
 
     SemanticAnalysisResultRef AliceSemanticAnalysisResult = AnalyseSemanticAnalyserState(AliceSemanticAnalyser);
     if (!GetSemanticAnalysisWasSucessfull(AliceSemanticAnalysisResult)) goto AliceCompilationDone;
-
+    
     AliceIRBuilder* AliceBuilder = NewAlIRBuilder();
 
     AliceIRModule* AliceIR = BuildIRFromTypedASTIRBuilder(AliceBuilder, AliceProgramAST);
@@ -44,33 +47,21 @@ Bool ReadAndDecode(const int argc, CString* argv)
         __AliceString* OutputPath = CompilationReader -> Attributes -> TargetArchive;
         GenerateExecutableFromObjectFile(CompilationResult -> RLiteral -> Chars, OutputPath -> Chars, "default<O2>", False, False);
     }
-    return True;
+    return 0;
 
     AliceCompilationDone:
-        return False;
+        return 1;
 }
 
 int VirtualMain(const int argc, CString* argv)
 {
-    ReadAndDecode(argc, argv);
+    int ReadDecodeResult = ReadAndDecode(argc, argv);
     __AlFreeAll();
-    return 0;
-}
-
-int DebugMain(long Flag)
-{
-    switch (Flag)
-    {
-        case 0:
-            break;
-        default:
-            return 0;
-    }
+    return ReadDecodeResult;
 }
 
 int main(const int argc, CString* argv) 
 {
-    if (strcasecmp(argv[argc - 2], "alicedbg") == 0) return DebugMain(__StringToInt(__AlStringFrom(argv[argc - 1]), 10));
     return VirtualMain(argc, argv);
 }
 

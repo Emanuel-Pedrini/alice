@@ -248,7 +248,7 @@ static AliceIRValue* BuildFromExpressionIRBuilder(AliceIRBuilder* Builder, Expre
                     return Value;
                 case Tk_Decimal: // Here, change after.
                     return NewAlIRValue(IRValue_Constant, N -> ResolvedType);
-                case Tk_Indentifier:
+                case Tk_Identifier:
                     return NewAlIRFunctionLoadIRBuilder(Builder, N -> Symbol -> Slot, N -> ResolvedType);
                 default:
                     break;
@@ -257,6 +257,7 @@ static AliceIRValue* BuildFromExpressionIRBuilder(AliceIRBuilder* Builder, Expre
         case UNARY:
             break;
         case BINARY:
+            AliceToken* Operator = N -> Value.Binary -> Operator;
             AliceIRValue* Left = BuildFromExpressionIRBuilder(Builder, N -> Value.Binary -> Left);
             AliceIRValue* Right = BuildFromExpressionIRBuilder(Builder, N -> Value.Binary -> Right);
             break;
@@ -267,7 +268,11 @@ static AliceIRValue* BuildFromExpressionIRBuilder(AliceIRBuilder* Builder, Expre
 
 __Void BuildFromVariableAssignIRBuilder(AliceIRBuilder* Builder, VariableAssignDeclaration* N)
 {
-    (Builder);
+    if (N -> Value != NULL)
+    {
+        return;
+    }
+    return;
 }
 
 __Void BuildFromMemberIRBuilder(AliceIRBuilder* Builder, MemberDeclaration* N)
@@ -301,7 +306,9 @@ __Void BuildFromParserNodeIRBuilder(AliceIRBuilder* Builder, ParserNode* N)
         }
         case AsExpression:
         {
-            BuildFromExpressionIRBuilder(Builder, &(N -> Declaration.FieldExpression));break;}
+            BuildFromExpressionIRBuilder(Builder, &(N -> Declaration.FieldExpression));
+            break;
+        }
         case AsVariableAssign:
         {
             BuildFromVariableAssignIRBuilder(Builder, &(N -> Declaration.FieldVariableAssign));
@@ -312,5 +319,15 @@ __Void BuildFromParserNodeIRBuilder(AliceIRBuilder* Builder, ParserNode* N)
             BuildFromMemberIRBuilder(Builder, &(N -> Declaration.FieldMember));
             break;
         }
+    }
+}
+
+AliceInstructionType* MapTokenToInstruction(AliceToken* TokenT, __AliceType* LeftType, __AliceType* RightType)
+{
+    switch (TokenT -> Type)
+    {
+        case AliceTK_Asterisk: return NewAlInstructionType(AliceIROpcode_IMultiplication);
+        default:
+            break;
     }
 }

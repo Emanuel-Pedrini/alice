@@ -86,7 +86,6 @@ struct Struct__AliceType
     CString Literal;
     AliceTypeKind Kind;
     __AliceTypeInformation Information;
-    __AliceString* (*ConversionToString)(__AliceType*);
 };
 
 __AliceType* __NewAliceType(CString __Literal, AliceTypeKind __Kind, __AliceType* __InternType);

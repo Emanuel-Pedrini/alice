@@ -65,11 +65,11 @@ __Void CompileIRBlockFromAIR(AliceCodeWritter* Writter, AliceIRBlock* Block)
 __Void CompileIRInstructionFromAIR(AliceCodeWritter* Writter, AliceIRInstruction* Instruction)
 {
     AliceCodeBlock* Caller = Writter -> CurrentBlock;
+    char B[256] = "";
     switch (Instruction -> Type -> Kind)
     {
         case AliceIROpcode_Return:
-            char B[256];
-            snprintf(B, sizeof(B), "ret i32 %s", CompileIRValueFromAIR(Writter, Instruction -> Primary) -> Chars);
+            snprintf(B, sizeof(B), "ret %s", CompileIRValueFromAIR(Writter, Instruction -> Primary) -> Chars);
             AliceCodeLine* L = NewCodeLine(B);
             NewCodeBlockLine(Writter -> CurrentBlock, L);
             break;
@@ -82,14 +82,18 @@ __Void CompileIRInstructionFromAIR(AliceCodeWritter* Writter, AliceIRInstruction
 
 __AliceString* CompileIRValueFromAIR(AliceCodeWritter* Writter, AliceIRValue* Value)
 {
+    char B[128] = "";
     switch (Value -> Kind)
     {
         case IRValue_Constant:
             switch (Value -> NumType)
             {
                 case AlNumericType_Integer:
-                    char B[128];
-                    snprintf(B, sizeof(B), "%d", Value -> IntegerValue);
+                    snprintf(B, sizeof(B), "%s%d %d", 
+                    Value -> Type -> Information.Numeric.IsSigned ? "i" : "u", 
+                    Value -> Type -> Information.Numeric.BitWidth, 
+                    Value -> IntegerValue);
+                    
                     return __AlStringFrom(B);
                 
                 default:

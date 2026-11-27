@@ -12,14 +12,32 @@ SemanticAnalyserState* NewSemanticAnalyserState(ParserNode* AST)
     return AnalyserS;
 }
 
-SemanticAnalysisResult* CollectGlobalTypesSemanticAnalyserState(SemanticAnalyserState* AliceState)
+SemanticAnalysisResult* CollectGlobalTypesSemanticAnalyserState(SemanticAnalyserState* AliceState, BodyDeclaration* N)
 {
-
 }
 
-SemanticAnalysisResult* CollectGlobalFunctionsSemanticAnalyserState(SemanticAnalyserState* AliceState)
+SemanticAnalysisResult* CollectGlobalFunctionsSemanticAnalyserState(SemanticAnalyserState* AliceState, BodyDeclaration* N)
 {
-
+    for (Usize Interator = 0; Interator < N -> BodyStatements -> VSize; Interator++)
+    {
+        ParserNode* Limb = ((ParserNode*)__GetAlVector(N -> BodyStatements, Interator));
+        if (Limb -> Type == AsFunctionHead) 
+        {
+            FunctionHeadDeclaration Declr = Limb -> Declaration.FieldFunctionHead;
+            __AliceString* Name = Declr.Name;
+            __AliceType* Type = Declr.ReturnType;
+            __AliceDictionary* D = (*(__AliceDictionary**)__GetAlVector(AliceState -> ScopeStack -> Elements, 0));
+            __NewElementAlDictionary(D, Name, NewScopeObject(Type, NULL));
+        }
+        else if (Limb -> Type == AsFunctionImpl) 
+        {
+            FunctionHeadDeclaration* Declr = Limb->Declaration.FieldFunctionImpl.Head;
+            __AliceString* Name = Declr -> Name;
+            __AliceType* Type = Declr -> ReturnType;
+            __AliceDictionary* D = (*(__AliceDictionary**)__GetAlVector(AliceState -> ScopeStack -> Elements, 0));
+            __NewElementAlDictionary(D, Name, NewScopeObject(Type, NULL));
+        }
+    }
 }
 
 ScopeContext* NewScopeContext(Bool Exists, ScopeObject* Object)
@@ -107,6 +125,7 @@ SemanticAnalysisResultRef NewSemanticAnalysisResult(SemanticAnalyserState* Alice
 SemanticAnalysisResultRef AnalyseSemanticAnalyserState(SemanticAnalyserState* AliceState)
 {
     StackScopeDictionary(AliceState);
+    CollectGlobalFunctionsSemanticAnalyserState(AliceState, &(AliceState -> AST -> Declaration.FieldBody));
     AnalyseNode(AliceState, AliceState -> AST);
     UnstackScopeDictionary(AliceState);
     return NewSemanticAnalysisResult(AliceState);
@@ -135,16 +154,13 @@ static __Void AnalyseFunction(SemanticAnalyserState* AliceState, FunctionImplDec
     __AliceString* Name = N -> Head -> Name;
     __AliceType* Type = N -> Head -> ReturnType;
 
-    StackScopeObject(AliceState, Name, NewScopeObject(NULL, NULL));
     StackScopeDictionary(AliceState);
     StackReturnType(AliceState, Type);
 
     for (Usize Interator = 0; Interator < Args -> VSize; Interator++)
     {
         MemberDeclaration* Member = ((MemberDeclaration*)__GetAlVector(Args, Interator));
-        LocalSymbol* Sym = NewLocalSymbol(Member -> Name, Member -> Type);
-        Member -> Symbol = Sym;
-        StackScopeObject(AliceState, Member -> Name, NewScopeObject(Member -> Type, Sym));
+        AnalyseMember(AliceState, Member);
     }
 
     AnalyseStatements(AliceState, Body);
@@ -186,10 +202,9 @@ static __AliceType* AnalyseExpression(SemanticAnalyserState* AliceState, Express
                     N -> ResolvedType = __StandardFloatType;
                     return N -> ResolvedType;
                 }
-                case Tk_Indentifier:
+                case Tk_Identifier:
                 {
                     ScopeContext* Cont = LookupSemanticAnalyserState(AliceState, __AlStringFrom(N -> Value.Literal -> Literal));
-
                     if (Cont -> Exists)
                     {
                         N -> Symbol = Cont -> Object -> Symbol;
@@ -197,7 +212,8 @@ static __AliceType* AnalyseExpression(SemanticAnalyserState* AliceState, Express
                         return N -> ResolvedType;
                     }
                     RaiseErrorSemanticAnalyserState(AliceState);
-                    return &GlobalNull;
+                    N -> ResolvedType = &GlobalNull;
+                    return N -> ResolvedType;
                 }
                 default:
                 {
@@ -250,16 +266,18 @@ static __Void AnalyseVariableAssign(SemanticAnalyserState* AliceState, VariableA
     MemberDeclaration* Member = N -> Member;
     if (N -> Value != NULL)
     { 
-        StackScopeObject(AliceState, N -> Member -> Name, NewScopeObject(N -> Member -> Type, N -> Member -> Symbol));
-        // if (__CastingType(N -> Member -> Type, AnalyseExpression(AliceState, N -> Value)))
-        // {
-        // }
+        __AliceType* Type = AnalyseExpression(AliceState, N -> Value);
+        if (N -> Member -> Symbol == NULL) NewLocalSymbol(__AlStringFrom(Type -> Literal), Type);
     }
+    AnalyseMember(AliceState, N -> Member);
+    return;
 }
 
 static __Void AnalyseMember(SemanticAnalyserState* AliceState, MemberDeclaration* N)
 {
-
+    LocalSymbol* Sym = NewLocalSymbol(N -> Name, N -> Type);
+    N -> Symbol = Sym;
+    StackScopeObject(AliceState, N -> Name, NewScopeObject(N -> Type, Sym));
 }
 
 static __Void AnalyseNode(SemanticAnalyserState* AliceState, ParserNode* N)

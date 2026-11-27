@@ -73,114 +73,112 @@ struct Struct__LexerState {
 };
 
 enum Enum__AliceTokenType {
-    Tk_Illegal = 0, 
+    AliceTK_Illegal, 
         
-    Tk_ArchiveMarker = 1,
+    AliceTK_Archive,
 
-    Tk_Adress = 2,     
-    Tk_Colon = 3,     
-    Tk_Point = 4,     
-    Tk_Comma = 5,     
-    Tk_Percentage = 6,    
-    Tk_Asterisk = 7,    
-    Tk_Commercial = 8,    
-    Tk_Money = 9,
-    Tk_Hashtag = 10,
-    Tk_Bang = 11,
-    Tk_Interrogation = 12,
-    Tk_Backslash = 13,
-    Tk_Pipe = 14,
+    AliceTK_AtSign,     
+    AliceTK_Colon,     
+    AliceTK_Point,     
+    AliceTK_Comma,     
+    AliceTK_Percent,    
+    AliceTK_Asterisk,    
+    AliceTK_Ampersand,    
+    AliceTK_DollarSign,
+    AliceTK_Hashtag,
+    AliceTK_Bang,
+    AliceTK_Interrogation,
+    AliceTK_Backslash,
+    AliceTK_Pipe,
 
-    Tk_String = 15,
+    Tk_LeftArrow,
+    Tk_RightArrow,
+    Tk_UpArrow,
 
-    Tk_LeftArrow = 16,
-    Tk_RightArrow = 17,
-    Tk_UpArrow = 18,
+    Tk_Minus,
+    Tk_Plus,
+    Tk_Equal,
+    Tk_Div,
 
-    Tk_Minus = 19,
-    Tk_Plus = 20,
-    Tk_Equal = 21,
-    Tk_Div = 23,
+    Tk_LeftParenthesis,
+    Tk_RightParenthesis,
+    Tk_LeftBrace,
+    Tk_RightBrace,
+    Tk_LeftKeys,
+    Tk_RightKeys,
 
-    Tk_LeftParenthesis = 24,
-    Tk_RightParenthesis = 25,
-    Tk_LeftBrace = 26,
-    Tk_RightBrace = 27,
-    Tk_LeftKeys = 28,
-    Tk_RightKeys = 29,
+    Tk_Identifier,
 
-    Tk_Indentifier = 30,
+    Tk_Indent,
+    Tk_Dedent,
 
-    Tk_Indent = 31,
-    Tk_Dedent = 32,
+    Tk_LeftSetter,
+    Tk_RightSetter,
 
-    Tk_LeftSetter = 33,
-    Tk_RightSetter = 34,
-
-    Tk_EqualEqual = 35,
-    Tk_LessEqual = 36,
-    Tk_GreaterEqual = 37,
-    Tk_NotEqual = 38,
-    Tk_DoubleColon = 39,
+    Tk_EqualEqual,
+    Tk_LessEqual,
+    Tk_GreaterEqual,
+    Tk_NotEqual,
+    Tk_DoubleColon,
 
 
-    Tk_For = 40,
-    Tk_While = 41,
-    Tk_Loop = 42,
-    Tk_Break = 43,
-    Tk_Continue = 44,
+    Tk_For,
+    Tk_While,
+    Tk_Loop,
+    Tk_Break,
+    Tk_Continue,
 
-    Tk_Return = 45,
+    Tk_Return,
 
-    Tk_Constant = 46,
-    Tk_Define = 47,
-    Tk_Variable = 48,
+    Tk_Constant,
+    Tk_Define,
+    Tk_Variable,
 
-    Tk_If = 49,
-    Tk_Elif = 50,
-    Tk_Else = 51,
+    Tk_If,
+    Tk_Elif,
+    Tk_Else,
 
-    Tk_Number = 52,
-    Tk_Char = 55,
-    Tk_Null = 57,
+    Tk_Number,
+    Tk_Char,
+    Tk_Null,
     
-    Tk_Binary = 58,
-    Tk_Decimal = 59,
-    Tk_Hexadecimal = 60,
+    Tk_Binary,
+    Tk_Decimal,
+    Tk_Hexadecimal,
 
-    Tk_NewLine = 63,
-    Tk_Function = 64,
-    Tk_End = 65,
-    Tk_Do = 66,
-    Tk_Static = 67,
-    Tk_Local = 68,
-    Tk_Global = 69,
-    Tk_Except = 70,
-    Tk_Try = 71,
-    Tk_Self = 72,
-    Tk_Then = 73,
+    Tk_NewLine,
+    Tk_Function,
+    Tk_End,
+    Tk_Do,
+    Tk_Static,
+    Tk_Local,
+    Tk_Global,
+    Tk_Except,
+    Tk_Try,
+    Tk_Self,
+    Tk_Then,
     
-    Tk_In = 75,
-    Tk_Go = 76,
-    Tk_Is = 80,
-    Tk_Await = 82,
-    Tk_As = 83,
+    Tk_In,
+    Tk_Go,
+    Tk_Is,
+    Tk_Await,
+    Tk_As,
     
-    Tk_Alice = 89,
-    Tk_DoublePoint = 92,
-    Tk_TriplePoint = 93,
-    Tk_Has = 94,
-
-    Tk_And = 95,
-    Tk_Or = 96,
-    Tk_Not = 97,
+    Tk_Alice,
+    Tk_DoublePoint,
+    Tk_TriplePoint,
     
-    Tk_Range = 104,
-    Tk_Tilde = 105,
-    Tk_Struct = 106,
-    Tk_Anything = 107,
-    Tk_ExplicitCast = 108,
-    Tk_CowardCast = 109,
+    Tk_And,
+    Tk_Or,
+    Tk_Not,
+    
+    Tk_String,
+    
+    Tk_Tilde,
+    Tk_Struct,
+    Tk_Anything,
+    Tk_ExplicitCast,
+    Tk_CowardCast,
     Tk_EndOfCode 
 
 };
@@ -191,7 +189,6 @@ struct Struct__AliceToken  {
     Usize Start;
     Usize Length;
     Usize Line;
-    __AliceString* (*ConversionToString)(AliceToken*);
 };
 
 AliceToken* NewAliceToken(AliceTokenType Type, Usize Start, Usize Length, char* Literal);
@@ -201,6 +198,6 @@ __AliceString* ConversionToString__AliceToken(AliceToken* InQ);
 __AliceVector* AliceLexerTokenize(AliceManagementObjectRef ManagementObject);
 Bool IsEqual(CString Word, CString Src);
 void Skip(LexerState* AliceState);
-AliceToken* ReadIndentifier(LexerState* AliceState);
+AliceToken* ReadIdentifier(LexerState* AliceState);
 AliceTokenType HandleFreewordAliceState(LexerState* AliceState, CString Word, uint32_t Length);
 #endif
