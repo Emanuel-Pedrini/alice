@@ -240,15 +240,15 @@ static AliceIRValue* BuildFromExpressionIRBuilder(AliceIRBuilder* Builder, Expre
         case LITERAL:
             switch (N -> Value.Literal -> Type)
             {
-                case Tk_Number:
+                case ALICETK_NUMBER:
                     AliceIRValue* Value  = NewAlIRValue(IRValue_Constant, N -> ResolvedType);
                     long NumericValue = __StringToInt(__AlStringFrom(N -> Value.Literal->Literal), 10);
                     Value -> NumType = AlNumericType_Integer;
                     Value -> IntegerValue = NumericValue;
                     return Value;
-                case Tk_Decimal: // Here, change after.
+                case ALICETK_DECIMAL: // Here, change after.
                     return NewAlIRValue(IRValue_Constant, N -> ResolvedType);
-                case Tk_Identifier:
+                case ALICETK_IDENTIFIER:
                     return NewAlIRFunctionLoadIRBuilder(Builder, N -> Symbol -> Slot, N -> ResolvedType);
                 default:
                     break;
@@ -326,7 +326,7 @@ AliceInstructionType* MapTokenToInstruction(AliceToken* TokenT, __AliceType* Lef
 {
     switch (TokenT -> Type)
     {
-        case AliceTK_Asterisk: return NewAlInstructionType(AliceIROpcode_IMultiplication);
+        case ALICETK_ASTERISK: return NewAlInstructionType(AliceIROpcode_IMultiplication);
         default:
             break;
     }

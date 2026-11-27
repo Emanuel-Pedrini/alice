@@ -194,15 +194,15 @@ static __AliceType* AnalyseExpression(SemanticAnalyserState* AliceState, Express
         {
             switch (N -> Value.Literal->Type)
             {
-                case Tk_Number:
+                case ALICETK_NUMBER:
                     N -> ResolvedType = __StandardIntegerType;
                     return N -> ResolvedType;
-                case Tk_Decimal:
+                case ALICETK_DECIMAL:
                 {
                     N -> ResolvedType = __StandardFloatType;
                     return N -> ResolvedType;
                 }
-                case Tk_Identifier:
+                case ALICETK_IDENTIFIER:
                 {
                     ScopeContext* Cont = LookupSemanticAnalyserState(AliceState, __AlStringFrom(N -> Value.Literal -> Literal));
                     if (Cont -> Exists)
@@ -228,13 +228,13 @@ static __AliceType* AnalyseExpression(SemanticAnalyserState* AliceState, Express
             Bool BooleanOperand = __IsBooleanOperator(OprType);
             switch (OprType)
             {
-                case Tk_Minus:
+                case ALICETK_MINUS:
                     break;
-                case Tk_Plus:
+                case ALICETK_PLUS:
                     break;
-                case Tk_ExplicitCast:
+                case ALICETK_EXPLICITCAST:
                     break;
-                case Tk_CowardCast:
+                case ALICETK_COWARDCAST:
                     break;
                 default:
                     break;

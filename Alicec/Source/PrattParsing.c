@@ -159,29 +159,29 @@ Usize BindingPower(ExpressionReader* Reader, const AliceTokenType Operator)
     if (Operator == Reader -> RightDelimiter) return BASE_EXPRESSION_VALUE * 0;
     switch (Operator)
     {
-        BindingOperator(Tk_LeftParenthesis, 128)
-        BindingOperator(Tk_LeftKeys, 128)
-        BindingOperator(Tk_LeftBrace, 128)
-        BindingOperator(Tk_RightBrace, 0)
-        BindingOperator(Tk_RightParenthesis, 0)
+        BindingOperator(ALICETK_LEFTPARENTHESIS, 128)
+        BindingOperator(ALICETK_LEFTKEYS, 128)
+        BindingOperator(ALICETK_LEFTBRACE, 128)
+        BindingOperator(ALICETK_RIGHTBRACE, 0)
+        BindingOperator(ALICETK_RIGHTPARENTHESIS, 0)
 
         // Boolean operators
-        BindingOperator(Tk_LeftArrow, 8)
-        BindingOperator(Tk_RightArrow, 8)
-        BindingOperator(Tk_GreaterEqual, 8)
-        BindingOperator(Tk_LessEqual, 8)
-        BindingOperator(Tk_EqualEqual, 4)
-        BindingOperator(Tk_NotEqual, 4)
-        BindingOperator(Tk_And, 2)
-        BindingOperator(Tk_Or, 1)
+        BindingOperator(ALICETK_LEFTARROW, 8)
+        BindingOperator(ALICETK_RIGHTARROW, 8)
+        BindingOperator(ALICETK_GREATEREQUAL, 8)
+        BindingOperator(ALICETK_LESSEQUAL, 8)
+        BindingOperator(ALICETK_EQUALEQUAL, 4)
+        BindingOperator(ALICETK_NOTEQUAL, 4)
+        BindingOperator(ALICETK_AND, 2)
+        BindingOperator(ALICETK_OR, 1)
 
-        BindingOperator(Tk_Minus, 16)
-        BindingOperator(Tk_Plus, 16)
-        BindingOperator(AliceTK_Asterisk, 32)
-        BindingOperator(Tk_Div, 32)
-        BindingOperator(AliceTK_Percent, 64)
-        BindingOperator(Tk_UpArrow, 64)
-        BindingOperator(AliceTK_Point, 128)
+        BindingOperator(ALICETK_MINUS, 16)
+        BindingOperator(ALICETK_PLUS, 16)
+        BindingOperator(ALICETK_ASTERISK, 32)
+        BindingOperator(ALICETK_DIV, 32)
+        BindingOperator(ALICETK_PERCENT, 64)
+        BindingOperator(ALICETK_UPARROW, 64)
+        BindingOperator(ALICETK_POINT, 128)
         default: return BASE_EXPRESSION_VALUE * 0;
     }
 }
@@ -191,11 +191,11 @@ Bool CanBeUnary(const AliceTokenType Operator)
 {
     switch (Operator)
     {
-        UnaryOperator(Tk_Minus)
-        UnaryOperator(Tk_Plus)
-        UnaryOperator(Tk_Not)
-        UnaryOperator(Tk_ExplicitCast)
-        UnaryOperator(Tk_CowardCast)
+        UnaryOperator(ALICETK_MINUS)
+        UnaryOperator(ALICETK_PLUS)
+        UnaryOperator(ALICETK_NOT)
+        UnaryOperator(ALICETK_EXPLICITCAST)
+        UnaryOperator(ALICETK_COWARDCAST)
         default: return False;
     }   
 }
@@ -204,9 +204,9 @@ Bool CanBeAcess(const AliceTokenType Operator)
 {
     switch (Operator)
     {
-        UnaryOperator(Tk_LeftParenthesis)
-        UnaryOperator(Tk_LeftBrace)
-        UnaryOperator(Tk_LeftKeys)
+        UnaryOperator(ALICETK_LEFTPARENTHESIS)
+        UnaryOperator(ALICETK_LEFTBRACE)
+        UnaryOperator(ALICETK_LEFTKEYS)
         default: return False;
     }   
 }
@@ -215,10 +215,10 @@ Bool AcessCloser(const AliceTokenType Opener)
 {
     switch (Opener)
     {
-        case Tk_LeftParenthesis: return Tk_RightParenthesis;
-        case Tk_LeftBrace: return Tk_RightBrace;
-        case Tk_LeftKeys: return Tk_RightKeys;
-        default: return AliceTK_Illegal;
+        case ALICETK_LEFTPARENTHESIS: return ALICETK_RIGHTPARENTHESIS;
+        case ALICETK_LEFTBRACE: return ALICETK_RIGHTBRACE;
+        case ALICETK_LEFTKEYS: return ALICETK_RIGHTKEYS;
+        default: return ALICETK_ILLEGAL;
     }
 }
 
@@ -235,7 +235,7 @@ Expression* CallDenotation(ExpressionReader* Reader, Expression* Callee)
             Expression* Argument = ParseExpression(Reader, 0);
             __PushAlVector(Arguments, &Argument);
             Next = PeekExpressionReader(Reader, 0);
-            if (Next != NULL && Next -> Type == AliceTK_Comma)
+            if (Next != NULL && Next -> Type == ALICETK_COMMA)
             {
                 ConsumeExpressionReader(Reader);
                 continue;
@@ -263,11 +263,11 @@ Expression* NullDenotation(ExpressionReader* Reader, AliceToken* Left)
         P.Unary = UnOp;
         return NewExpression(UNARY, P);
     }
-    else if (T == Tk_LeftParenthesis)
+    else if (T == ALICETK_LEFTPARENTHESIS)
     {
         Expression* ParsedExpression = ParseExpression(Reader, 0);
         AliceToken* NextToken = ConsumeExpressionReader(Reader);
-        if (NextToken -> Type == Tk_RightParenthesis)
+        if (NextToken -> Type == ALICETK_RIGHTPARENTHESIS)
         {
             return ParsedExpression;
         }
@@ -282,7 +282,7 @@ Expression* LeftDenotation(ExpressionReader* Reader, Expression* Left, Expressio
 {
     AliceTokenType BindType = Right -> Value.Literal -> Type;
     Usize BindPower = BindingPower(Reader, BindType);
-    if (BindType == Tk_UpArrow) BindPower--;
+    if (BindType == ALICETK_UPARROW) BindPower--;
     if (CanBeAcess(BindType)) return CallDenotation(Reader, Left);
     BinaryOperator* BinOp = NewBinaryOperator(
         Right -> Value.Literal, 

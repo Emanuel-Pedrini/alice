@@ -8,10 +8,10 @@
 #include "Headers/AliceTypes.h"
 #include "Headers/ForwardInclude.h"
 
-#define MEMBER_DELIMITER AliceTK_Colon
-#define ARGUMENT_DELIMITER AliceTK_Comma
-#define ASSOCIATIVE_DELIMITER Tk_Equal
-#define POINTER_DELIMITER AliceTK_Ampersand
+#define MEMBER_DELIMITER ALICETK_COLON
+#define ARGUMENT_DELIMITER ALICETK_COMMA
+#define ASSOCIATIVE_DELIMITER ALICETK_EQUAL
+#define POINTER_DELIMITER ALICETK_AMPERSAND
 
 #define FAST_PEEK(OFF, T) ((PeekTokenParserState(AliceState, OFF) != NULL) && PeekTokenParserState(AliceState, OFF) -> Type == T)
 #define TWO_TOKEN_DECLR(T1, T2) if (FAST_PEEK(0,T1) && FAST_PEEK(1,T2))

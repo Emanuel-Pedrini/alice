@@ -54,9 +54,9 @@ AliceToken* NewAliceToken(
 __AliceString* ConversionToString__AliceToken(AliceToken* InQ)
 {
     __AliceString* S =  __AlStringFrom("");
-    if (InQ -> Type == Tk_ExplicitCast || InQ -> Type == Tk_CowardCast) __AppendAlString(S, "Cast<");
+    if (InQ -> Type == ALICETK_EXPLICITCAST || InQ -> Type == ALICETK_COWARDCAST) __AppendAlString(S, "Cast<");
     __AppendAlString(S, __AlStringFrom(InQ -> Literal) -> Chars);
-    if (InQ -> Type == Tk_ExplicitCast || InQ -> Type == Tk_CowardCast) __AppendAlString(S, ">");
+    if (InQ -> Type == ALICETK_EXPLICITCAST || InQ -> Type == ALICETK_COWARDCAST) __AppendAlString(S, ">");
     return S;
 }
 
@@ -110,7 +110,7 @@ void HandleLineAliceState(LexerState* AliceState)
         switch (IndentationChange)
         {
         case 1:
-            T = NewAliceToken(Tk_Indent, 0, 0, "<__INDENT__>");
+            T = NewAliceToken(ALICETK_INDENT, 0, 0, "<__INDENT__>");
             __PushAlStack(AliceState -> IndHandler -> IndentationHistory, IndentationCount);
             __PushAlVector(AliceState -> Tokens, T);
             break;
@@ -120,7 +120,7 @@ void HandleLineAliceState(LexerState* AliceState)
             {
                 DedentCounter--;
                 __PopAlStack(AliceState -> IndHandler -> IndentationHistory);
-                T = NewAliceToken(Tk_Dedent, 0, 0, "<__DEDENT__>");
+                T = NewAliceToken(ALICETK_DEDENT, 0, 0, "<__DEDENT__>");
                 __PushAlVector(AliceState -> Tokens, T);
             }
             break;
@@ -163,7 +163,7 @@ void HandleNonStandardAliceState(LexerState* AliceState) {
         {
             if (AliceState -> Depth == 0)
             {
-                AliceToken* T = NewAliceToken(Tk_NewLine, 0, 0, "");
+                AliceToken* T = NewAliceToken(ALICETK_NEWLINE, 0, 0, "");
                 __PushAlVector(AliceState -> Tokens, T);
             }
             HandleLineAliceState(AliceState);
@@ -187,71 +187,71 @@ void Set(LexerState* AliceState, Usize SetValue)
 
 AliceToken* HandleSymbolAliceState(LexerState* AliceState) 
 {
-    AliceTokenType Type = AliceTK_Illegal;
+    AliceTokenType Type = ALICETK_ILLEGAL;
     Usize Start = AliceState -> Pointer;
     Usize Length = 1;
 
     switch (CurrentCharAliceState(AliceState)) {
         case '@':
-            Type = AliceTK_AtSign;
+            Type = ALICETK_ATSIGN;
             break;
 
         case '(':
-            Type = Tk_LeftParenthesis;
+            Type = ALICETK_LEFTPARENTHESIS;
             AliceState -> Depth++;
             break;
         case ')':
-            Type = Tk_RightParenthesis;
+            Type = ALICETK_RIGHTPARENTHESIS;
             AliceState -> Depth--;
             break;
         case '{':
-            Type = Tk_LeftKeys;
+            Type = ALICETK_LEFTKEYS;
             AliceState -> Depth++;
             break;
         case '~':
-            Type = Tk_Tilde;
+            Type = ALICETK_TILDE;
             break;
         case '}':
-            Type = Tk_RightKeys;
+            Type = ALICETK_RIGHTKEYS;
             AliceState -> Depth--;
             break;
         case '[':
-            Type = Tk_LeftBrace;
+            Type = ALICETK_LEFTBRACE;
             AliceState -> Depth++;
             break;
         case ']':
-            Type = Tk_RightBrace;
+            Type = ALICETK_RIGHTBRACE;
             AliceState -> Depth--;
             break;
 
         case '%':
-            Type = AliceTK_Percent;
+            Type = ALICETK_PERCENT;
             break;
         case '$':
-            Type = AliceTK_DollarSign;
+            Type = ALICETK_DOLLARSIGN;
             break;
 
         case '?':
-            Type = AliceTK_Interrogation;
+            Type = ALICETK_INTERROGATION;
             break;
 
         case '*':
-            Type = AliceTK_Asterisk;
+            Type = ALICETK_ASTERISK;
             break;
             
         case '<':
             switch (Peek(AliceState, 1))
             {
                 case '-':
-                    Type = Tk_LeftSetter;
+                    Type = ALICETK_LEFTSETTER;
                     Length = 2;
                     break;
                 case '=':
-                    Type = Tk_LessEqual;
+                    Type = ALICETK_LESSEQUAL;
                     Length = 2;
                     break;
                 default:
-                    Type = Tk_LeftArrow;
+                    Type = ALICETK_LEFTARROW;
                     break;
             }
             break;
@@ -259,11 +259,11 @@ AliceToken* HandleSymbolAliceState(LexerState* AliceState)
             switch (Peek(AliceState, 1))
             {
                 case '=':
-                    Type = Tk_GreaterEqual;
+                    Type = ALICETK_GREATEREQUAL;
                     Length = 2;
                     break;
                 default:
-                    Type = Tk_RightArrow;
+                    Type = ALICETK_RIGHTARROW;
                     break;
             }
             break;
@@ -272,33 +272,33 @@ AliceToken* HandleSymbolAliceState(LexerState* AliceState)
             switch (Peek(AliceState, 1))
             {
                 case '=':
-                    Type = Tk_NotEqual;
+                    Type = ALICETK_NOTEQUAL;
                     Length = 2;
                     break;
                 default:
-                    Type = AliceTK_Bang;
+                    Type = ALICETK_BANG;
                     break;
             }
             break;
 
         case '^':
-            Type = Tk_UpArrow;
+            Type = ALICETK_UPARROW;
             break;
 
         case '+':
-            Type = Tk_Plus;
+            Type = ALICETK_PLUS;
 
             break;
         case '-':
             switch (Peek(AliceState, 1))
             {
                 case '>':
-                    Type = Tk_RightSetter;
+                    Type = ALICETK_RIGHTSETTER;
                     Length = 2;
                     break;
 
                 default:
-                    Type = Tk_Minus;
+                    Type = ALICETK_MINUS;
                     break;
             }
             break;
@@ -306,12 +306,12 @@ AliceToken* HandleSymbolAliceState(LexerState* AliceState)
             switch (Peek(AliceState, 1))
             {
                 case ':':
-                    Type = Tk_DoubleColon;
+                    Type = ALICETK_DOUBLECOLON;
                     Length = 2;
                     break;
 
                 default:
-                    Type = AliceTK_Colon;
+                    Type = ALICETK_COLON;
                     break;
             }
             break;
@@ -320,36 +320,36 @@ AliceToken* HandleSymbolAliceState(LexerState* AliceState)
             switch (Peek(AliceState, 1))
             {
                 case '=':
-                    Type = Tk_EqualEqual;
+                    Type = ALICETK_EQUALEQUAL;
                     Length = 2;
                     break;
 
                 default:
-                    Type = Tk_Equal;
+                    Type = ALICETK_EQUAL;
                     break;
             }
             break;
 
         case '/':
-            Type = Tk_Div;
+            Type = ALICETK_DIV;
             break;
 
         case '\\':
-            Type = AliceTK_Backslash;
+            Type = ALICETK_BACKSLASH;
             break;
         case '&':
-            Type = AliceTK_Ampersand;
+            Type = ALICETK_AMPERSAND;
             break;
         case '|':
             switch (Peek(AliceState, 1))
             {
                 default:
-                    Type = AliceTK_Pipe;
+                    Type = ALICETK_PIPE;
                     break;
             }
             break;
         case ',':
-            Type = AliceTK_Comma;
+            Type = ALICETK_COMMA;
             break;
 
         case '.':
@@ -359,24 +359,24 @@ AliceToken* HandleSymbolAliceState(LexerState* AliceState)
 					switch (Peek(AliceState, 2))
 					{
 						case '.':
-							Type = Tk_TriplePoint;
+							Type = ALICETK_TRIPLEPOINT;
 							Length = 3;
 							break;
 
 						default:
-							Type = Tk_DoublePoint;
+							Type = ALICETK_DOUBLEPOINT;
 							Length = 2;
 							break;
 					}
 					break;
                 default:
-                    Type = AliceTK_Point;
+                    Type = ALICETK_POINT;
                     break;
             }
             break;
 
         default:
-            Type = AliceTK_Illegal;
+            Type = ALICETK_ILLEGAL;
             break;
     }
     char* Word =  Substring(AliceState -> Code -> Chars, Start, (Start + Length));
@@ -385,43 +385,43 @@ AliceToken* HandleSymbolAliceState(LexerState* AliceState)
 
 AliceTokenType HandleFreewordAliceState(LexerState* AliceState, CString Word, uint32_t Length) 
 {
-	IfKeyword(RETURN_KEYWORD, Tk_Return)
-	Keyword(DO_KEYWORD, Tk_Do)
-	Keyword(DEFINE_KEYWORD, Tk_Define)
-	Keyword(CONSTANT_KEYWORD, Tk_Constant)
-	Keyword(VARIABLE_KEYWORD, Tk_Variable)
-	Keyword(FOR_KEYWORD, Tk_For)
-	Keyword(WHILE_KEYWORD, Tk_While)
-	Keyword(FUNCTION_KEYWORD, Tk_Function)
-	Keyword(LOOP_KEYWORD, Tk_Loop)
-	Keyword(BREAK_KEYWORD, Tk_Break)
-	Keyword(CONTINUE_KEYWORD, Tk_Continue)
-	Keyword(IF_KEYWORD, Tk_If)
-	Keyword(ELSE_IF_KEYWORD, Tk_Elif)
-	Keyword(ELSE_KEYWORD, Tk_Else)
-	Keyword(END_KEYWORD, Tk_End)
+	IfKeyword(RETURN_KEYWORD, ALICETK_RETURN)
+	Keyword(DO_KEYWORD, ALICETK_DO)
+	Keyword(DEFINE_KEYWORD, ALICETK_DEFINE)
+	Keyword(CONSTANT_KEYWORD, ALICETK_CONSTANT)
+	Keyword(VARIABLE_KEYWORD, ALICETK_VARIABLE)
+	Keyword(FOR_KEYWORD, ALICETK_FOR)
+	Keyword(WHILE_KEYWORD, ALICETK_WHILE)
+	Keyword(FUNCTION_KEYWORD, ALICETK_FUNCTION)
+	Keyword(LOOP_KEYWORD, ALICETK_LOOP)
+	Keyword(BREAK_KEYWORD, ALICETK_BREAK)
+	Keyword(CONTINUE_KEYWORD, ALICETK_CONTINUE)
+	Keyword(IF_KEYWORD, ALICETK_IF)
+	Keyword(ELSE_IF_KEYWORD, ALICETK_ELIF)
+	Keyword(ELSE_KEYWORD, ALICETK_ELSE)
+	Keyword(END_KEYWORD, ALICETK_END)
 	else if (IsCaseEqual(Word, "static") && Peek(AliceState, Length) != '<') 
         {
-            return Tk_Static;
+            return ALICETK_STATIC;
         }
-	Keyword(LOCAL_KEYWORD, Tk_Local)
-	Keyword(GLOBAL_KEYWORD, Tk_Global)
-	Keyword(EXCEPT_KEYWORD, Tk_Except)
-	Keyword(TRY_KEYWORD, Tk_Try)
-	Keyword(SELF_KEYWORD, Tk_Self)
-	Keyword(THEN_KEYWORD, Tk_Then)
-	Keyword(IS_KEYWORD, Tk_Is)
-	Keyword(IN_KEYWORD, Tk_In)
-	Keyword(GO_KEYWORD, Tk_Go)
-	Keyword(AWAIT_KEYWORD, Tk_Await)
-	Keyword(END_OF_CODE_KEYWORD, Tk_EndOfCode)
-	Keyword(AS_KEYWORD, Tk_As)
-	Keyword(ALICE_KEYWORD, Tk_Alice)
-	Keyword(NOT_KEYWORD, Tk_Not)
-	Keyword(AND_KEYWORD, Tk_And)
-	Keyword(OR_KEYWORD, Tk_Or)
-    Keyword(STRUCT_KEYWORD, Tk_Struct)
-    else {return Tk_Identifier;}
+	Keyword(LOCAL_KEYWORD, ALICETK_LOCAL)
+	Keyword(GLOBAL_KEYWORD, ALICETK_GLOBAL)
+	Keyword(EXCEPT_KEYWORD, ALICETK_EXCEPT)
+	Keyword(TRY_KEYWORD, ALICETK_TRY)
+	Keyword(SELF_KEYWORD, ALICETK_SELF)
+	Keyword(THEN_KEYWORD, ALICETK_THEN)
+	Keyword(IS_KEYWORD, ALICETK_IS)
+	Keyword(IN_KEYWORD, ALICETK_IN)
+	Keyword(GO_KEYWORD, ALICETK_GO)
+	Keyword(AWAIT_KEYWORD, ALICETK_AWAIT)
+	Keyword(END_OF_CODE_KEYWORD, ALICETK_ENDOFCODE)
+	Keyword(AS_KEYWORD, ALICETK_AS)
+	Keyword(ALICE_KEYWORD, ALICETK_ALICE)
+	Keyword(NOT_KEYWORD, ALICETK_NOT)
+	Keyword(AND_KEYWORD, ALICETK_AND)
+	Keyword(OR_KEYWORD, ALICETK_OR)
+    Keyword(STRUCT_KEYWORD, ALICETK_STRUCT)
+    else {return ALICETK_IDENTIFIER;}
 }
 
 AliceToken* ReadIdentifier(LexerState* AliceState) 
@@ -440,13 +440,13 @@ AliceToken* ReadIdentifier(LexerState* AliceState)
     {
         case '!': 
         {
-            if (Offset < 0) {__PopAlVector(AliceState -> Tokens); return NewAliceToken(Tk_ExplicitCast, Start, Length, Word);}
-            return NewAliceToken(Tk_ExplicitCast, Start, Length + 1, Word);
+            if (Offset < 0) {__PopAlVector(AliceState -> Tokens); return NewAliceToken(ALICETK_EXPLICITCAST, Start, Length, Word);}
+            return NewAliceToken(ALICETK_EXPLICITCAST, Start, Length + 1, Word);
         }
         case '?': 
         {
-            if (Offset < 0) {__PopAlVector(AliceState -> Tokens); return NewAliceToken(Tk_CowardCast, Start, Length, Word);}
-            return NewAliceToken(Tk_CowardCast, Start, Length + 1, Word);
+            if (Offset < 0) {__PopAlVector(AliceState -> Tokens); return NewAliceToken(ALICETK_COWARDCAST, Start, Length, Word);}
+            return NewAliceToken(ALICETK_COWARDCAST, Start, Length + 1, Word);
         }
         default: return NewAliceToken(Type, Start, Length, Word);
     }
@@ -489,13 +489,13 @@ AliceToken* ReadString(LexerState* AliceState)
     }
 
     Next(AliceState, 1);
-    return NewAliceToken(Tk_String, Start, Length, S -> Chars);
+    return NewAliceToken(ALICETK_STRING, Start, Length, S -> Chars);
 }
 
 AliceToken* ReadNumerical(LexerState* AliceState) 
 {
     int Length = 0;
-    AliceTokenType Type = Tk_Number;
+    AliceTokenType Type = ALICETK_NUMBER;
     Usize Start = AliceState -> Pointer;
     Usize FloatingPoints = 0;
     while (IsValidNumerical(AliceState -> Code -> Chars[Start + Length]) || IsValidNumerical(AliceState -> Code -> Chars[Start + Length] == '.') && !IsInvalid(CurrentCharAliceState(AliceState))) 
@@ -503,7 +503,7 @@ AliceToken* ReadNumerical(LexerState* AliceState)
         if (AliceState -> Code -> Chars[Start + Length] == '.')
         {
             FloatingPoints++;
-            if (FloatingPoints <= 1) Type = Tk_Decimal;
+            if (FloatingPoints <= 1) Type = ALICETK_DECIMAL;
             if (FloatingPoints > 1)
             {
                 // Read a range expression.
@@ -532,7 +532,7 @@ AliceToken* ReadArchiveMarker(LexerState* AliceState)
     char* Word =  Substring(AliceState -> Code -> Chars, Start, (Start + Length));
     Next(AliceState, 1);
 
-    return NewAliceToken(AliceTK_Archive, Start, Length, Word);
+    return NewAliceToken(ALICETK_ARCHIVE, Start, Length, Word);
 }
 
 __AliceVector* AliceLexerTokenize(AliceManagementObjectRef ManagementObject) 
@@ -584,10 +584,10 @@ __AliceVector* AliceLexerTokenize(AliceManagementObjectRef ManagementObject)
         }
         Next(&LocalState, Offset);
     }
-    // AliceToken* FinalNewLine = NewAliceToken(Tk_NewLine, LocalState.Pointer, 0, "");
+    // AliceToken* FinalNewLine = NewAliceToken(ALICETK_NEWLINE, LocalState.Pointer, 0, "");
     // __PushAlVector(Tokens, FinalNewLine);
     HandleLineAliceState(&LocalState);
-    AliceToken* EndingToken = NewAliceToken(Tk_EndOfCode, LocalState.Pointer, 0, "__END_OF_CODE__");
+    AliceToken* EndingToken = NewAliceToken(ALICETK_ENDOFCODE, LocalState.Pointer, 0, "__END_OF_CODE__");
     __PushAlVector(Tokens, EndingToken);
 	return Tokens;
 }

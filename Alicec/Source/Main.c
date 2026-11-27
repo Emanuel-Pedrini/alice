@@ -13,15 +13,15 @@
 #include "Compiler/Native/AliceLLVM.h"
 #include "Compiler/Native/AliceLLVMAPI.h"
 
-int ReadAndDecode(const int argc, CString* argv)
+int AliceReadAndDecodeMain(CString* Arguments, const int NumberOfArguments)
 {
     AliceCompilationAttributesReaderRef CompilationReader = NewAliceCompilationReader();
-    AliceCompilationAttributesRef CompilationAttributes = ReadCompilationAttributes(CompilationReader, argc, argv);
+    AliceCompilationAttributesRef CompilationAttributes = ReadCompilationAttributes(CompilationReader, NumberOfArguments, Arguments);
     AliceManagementObjectRef BigGirl = ManageCompilationObject(CompilationReader);
 
     __AliceString* TargetCArchive = CompilationAttributes -> TargetArchive;
     if (TargetCArchive == NULL) goto AliceCompilationDone;
-    
+
     __AliceString* CompilationPath = __AlStringFrom(TargetCArchive -> Chars);
     AliceCodeWritter* AliceSourceToTextCompiler = NewAliceCodeWritter(CompilationPath -> Chars);
 
@@ -55,7 +55,7 @@ int ReadAndDecode(const int argc, CString* argv)
 
 int VirtualMain(const int argc, CString* argv)
 {
-    int ReadDecodeResult = ReadAndDecode(argc, argv);
+    int ReadDecodeResult = AliceReadAndDecodeMain(argv, argc);
     __AlFreeAll();
     return ReadDecodeResult;
 }

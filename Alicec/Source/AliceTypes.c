@@ -31,15 +31,15 @@ Bool __IsBooleanOperator(AliceTokenType Type)
 {
     switch (Type)
     {
-        case Tk_LeftArrow:
-        case Tk_RightArrow:
-        case Tk_GreaterEqual:
-        case Tk_LessEqual:
-        case Tk_EqualEqual:
-        case Tk_NotEqual:
-        case Tk_And:
-        case Tk_Or:
-        case Tk_Not:
+        case ALICETK_LEFTARROW:
+        case ALICETK_RIGHTARROW:
+        case ALICETK_GREATEREQUAL:
+        case ALICETK_LESSEQUAL:
+        case ALICETK_EQUALEQUAL:
+        case ALICETK_NOTEQUAL:
+        case ALICETK_AND:
+        case ALICETK_OR:
+        case ALICETK_NOT:
             return True;
         default:
             return False;
